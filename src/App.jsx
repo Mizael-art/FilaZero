@@ -553,12 +553,25 @@ const QRScan=({setPage})=>{
 };
 
 // ─── FILA ─────────────────────────────────────────────────────────────────────
+const TRANSITO_ESTADOS = [
+  {label:"Trânsito leve",    cor:"#00F5A0", icon:"🟢", extra:"Boa hora para sair"},
+  {label:"Trânsito moderado",cor:"#FFB800", icon:"🟡", extra:"Pode haver lentidão"},
+  {label:"Trânsito intenso", cor:"#FF4060", icon:"🔴", extra:"Saia com antecedência"},
+];
+
 const Fila=({setPage})=>{
   const{joinQueue,myTicket,queue,getPos,lugar}=useApp();
   const[step,setStep]=useState(myTicket?2:1);
   const[form,setForm]=useState({nome:"",tipo:lugar?.tipos[0]||"",prioridade:"normal"});
   const[err,setErr]=useState({});
   const[loading,setLoading]=useState(false);
+  // trânsito fictício — fixo para não causar re-render
+  const[transit]=useState(()=>({
+    distancia: "2.3 km",
+    tempoViagem: 8,          // minutos de deslocamento
+    estadoIdx: 1,            // 0=leve 1=moderado 2=intenso
+    rota: "Av. Paulista → R. Augusta → destino",
+  }));
   const tipos=lugar?.tipos||LUGARES[0].tipos;
 
   const submit=()=>{
@@ -569,7 +582,10 @@ const Fila=({setPage})=>{
 
   const pos=getPos();
   const me=myTicket?queue.find(q=>q.id===myTicket.id):null;
-  const est=pos!==null?Math.max(1,pos*4+rng(1,3)):null;
+  const est=pos!==null?Math.max(1,pos*4+2):null;
+  // Sair X minutos antes do estimado para chegar no horário
+  const sairEm = est!==null ? Math.max(1, est - transit.tempoViagem) : null;
+  const transito = TRANSITO_ESTADOS[transit.estadoIdx];
 
   return(
     <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",padding:"90px 20px"}}>
@@ -644,6 +660,63 @@ const Fila=({setPage})=>{
               <div style={{display:"flex",justifyContent:"space-between",marginBottom:12}}><span style={{fontSize:13,fontWeight:700}}>Progresso na fila</span><Badge status={me?.status||"aguardando"}/></div>
               <div style={{background:"rgba(255,255,255,.05)",borderRadius:100,height:7,overflow:"hidden"}}>
                 <div style={{height:"100%",borderRadius:100,background:"linear-gradient(90deg,#8B3DFF,#00D4FF)",width:pos!==null?`${Math.max(10,100-(pos/queue.length)*100)}%`:"10%",transition:"width 1.5s ease",boxShadow:"0 0 14px rgba(0,212,255,.7)"}}/>
+              </div>
+            </div>
+
+            {/* ── NAVEGAÇÃO / TRÂNSITO ─────────────────────────────── */}
+            <div className="glass" style={{borderRadius:20,border:`1px solid ${sairEm<=3?"rgba(255,64,96,.4)":sairEm<=6?"rgba(255,184,0,.35)":"rgba(0,212,255,.18)"}`,overflow:"hidden",boxShadow:sairEm<=3?"0 0 30px rgba(255,64,96,.12)":sairEm<=6?"0 0 24px rgba(255,184,0,.1)":"none",transition:"all 1s"}}>
+              {/* Header */}
+              <div style={{padding:"16px 20px 14px",borderBottom:"1px solid rgba(255,255,255,.06)",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+                <div style={{display:"flex",alignItems:"center",gap:8}}>
+                  <span style={{fontSize:16}}>🗺️</span>
+                  <span style={{fontWeight:700,fontSize:13}}>Navegação até o local</span>
+                </div>
+                <div style={{display:"flex",alignItems:"center",gap:6,fontSize:12,fontWeight:700,color:transito.cor}}>
+                  {transito.icon} {transito.label}
+                </div>
+              </div>
+
+              {/* Alert banner — sair em X min */}
+              {sairEm!==null&&(
+                <div style={{padding:"12px 20px",background:sairEm<=3?"rgba(255,64,96,.1)":sairEm<=6?"rgba(255,184,0,.08)":"rgba(0,212,255,.06)",borderBottom:"1px solid rgba(255,255,255,.05)",display:"flex",alignItems:"center",gap:10}}>
+                  <div style={{width:32,height:32,borderRadius:10,background:sairEm<=3?"rgba(255,64,96,.18)":sairEm<=6?"rgba(255,184,0,.15)":"rgba(0,212,255,.12)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,flexShrink:0}}>
+                    {sairEm<=3?"🚨":sairEm<=6?"⚠️":"🕐"}
+                  </div>
+                  <div>
+                    <div style={{fontWeight:800,fontSize:13,fontFamily:"Urbanist",color:sairEm<=3?"var(--red)":sairEm<=6?"var(--amber)":"var(--cyan)"}}>
+                      {sairEm<=3
+                        ? `Saia agora! ${sairEm} min para chegar`
+                        : sairEm<=6
+                        ? `Saia em ${sairEm} min — trânsito moderado`
+                        : `Saia em ~${sairEm} min para chegar na hora`
+                      }
+                    </div>
+                    <div style={{fontSize:11,color:"rgba(255,255,255,.35)",marginTop:1}}>{transito.extra}</div>
+                  </div>
+                </div>
+              )}
+
+              {/* Stats de navegação */}
+              <div style={{padding:"16px 20px",display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:12}}>
+                {[
+                  {icon:"📍",label:"Distância",value:transit.distancia,cor:"rgba(255,255,255,.7)"},
+                  {icon:"🚗",label:"Tempo viagem",value:`${transit.tempoViagem} min`,cor:"var(--cyan)"},
+                  {icon:"⏱",label:"Espera na fila",value:est?`~${est} min`:"—",cor:"var(--purple)"},
+                ].map((s,i)=>(
+                  <div key={i} style={{textAlign:"center",padding:"12px 8px",borderRadius:14,background:"rgba(255,255,255,.03)",border:"1px solid rgba(255,255,255,.05)"}}>
+                    <div style={{fontSize:18,marginBottom:5}}>{s.icon}</div>
+                    <div style={{fontWeight:800,fontSize:15,fontFamily:"Urbanist",color:s.cor}}>{s.value}</div>
+                    <div style={{fontSize:10,color:"rgba(255,255,255,.3)",marginTop:3,fontWeight:600}}>{s.label}</div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Rota */}
+              <div style={{padding:"0 20px 16px",display:"flex",alignItems:"center",gap:8}}>
+                <div style={{flex:1,fontSize:11,color:"rgba(255,255,255,.3)",fontWeight:500,background:"rgba(255,255,255,.03)",padding:"8px 12px",borderRadius:10,border:"1px solid rgba(255,255,255,.05)"}}>
+                  📌 {transit.rota}
+                </div>
+                <div style={{width:36,height:36,borderRadius:11,background:"linear-gradient(135deg,#8B3DFF,#00D4FF)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,cursor:"pointer",flexShrink:0,boxShadow:"0 0 16px rgba(0,212,255,.3)"}}>🧭</div>
               </div>
             </div>
 
