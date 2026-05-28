@@ -1,297 +1,222 @@
 import { useState, useEffect, useRef, useCallback, createContext, useContext } from "react";
 
-const GlobalStyles = () => (
+const G = () => (
   <style>{`
-    @import url('https://fonts.googleapis.com/css2?family=Urbanist:wght@300;400;500;600;700;800;900&family=Mulish:wght@300;400;500;600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Urbanist:wght@400;500;600;700;800;900&family=DM+Sans:wght@400;500;600&display=swap');
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#05070F;--bg2:#080B18;--bg3:#0C1020;
+      --cyan:#00D4FF;--purple:#8B3DFF;--violet:#6B21FF;
+      --pink:#D946EF;--white:#fff;--green:#00F5A0;
+      --red:#FF4060;--amber:#FFB800;--muted:#4A5570;
+      --card:rgba(255,255,255,0.035);--border:rgba(255,255,255,0.07);
+    }
+    html{scroll-behavior:smooth}
+    body{font-family:'DM Sans',sans-serif;background:var(--bg);color:#fff;overflow-x:hidden}
+    h1,h2,h3,h4{font-family:'Urbanist',sans-serif}
+    ::-webkit-scrollbar{width:4px}
+    ::-webkit-scrollbar-thumb{background:var(--purple);border-radius:4px}
+    input,select{font-family:'DM Sans',sans-serif;color:#fff}
+    input::placeholder{color:var(--muted)}
+    input:focus,select:focus{outline:none;border-color:rgba(0,212,255,.5)!important;box-shadow:0 0 0 3px rgba(0,212,255,.1)}
+    option{background:#0C1020}
 
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    @keyframes fadeUp{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+    @keyframes slideR{from{opacity:0;transform:translateX(32px)}to{opacity:1;transform:translateX(0)}}
+    @keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-14px)}}
+    @keyframes scanLine{0%{top:0;opacity:1}100%{top:100%;opacity:0}}
+    @keyframes cornerBlink{0%,100%{opacity:.5}50%{opacity:1}}
+    @keyframes ripple{0%{transform:scale(1);opacity:.5}100%{transform:scale(3.5);opacity:0}}
+    @keyframes ticker{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+    @keyframes callPulse{0%,100%{transform:scale(1)}20%,60%{transform:scale(1.06)}40%{transform:scale(.95)}}
+    @keyframes wave{0%,100%{height:4px}50%{height:24px}}
+    @keyframes cyanGlow{0%,100%{box-shadow:0 0 20px rgba(0,212,255,.3),0 0 60px rgba(0,212,255,.1)}50%{box-shadow:0 0 50px rgba(0,212,255,.7),0 0 120px rgba(0,212,255,.25)}}
+    @keyframes purpleGlow{0%,100%{box-shadow:0 0 20px rgba(139,61,255,.3)}50%{box-shadow:0 0 60px rgba(139,61,255,.7),0 0 110px rgba(139,61,255,.25)}}
+    @keyframes neonBorder{0%,100%{border-color:rgba(0,212,255,.3)}50%{border-color:rgba(0,212,255,.9)}}
+    @keyframes particleUp{0%{transform:translateY(100vh) scale(0);opacity:0}10%{opacity:.7}90%{opacity:.7}100%{transform:translateY(-60px) scale(1.2);opacity:0}}
+    @keyframes energyFlow{0%{background-position:0% 50%}100%{background-position:200% 50%}}
+    @keyframes waveAnim{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+    @keyframes hexFloat{0%,100%{transform:translateY(0) rotate(0deg);opacity:.05}50%{transform:translateY(-22px) rotate(180deg);opacity:.13}}
+    @keyframes phoneSpin{0%,100%{transform:perspective(800px) rotateY(-8deg) rotateX(4deg)}50%{transform:perspective(800px) rotateY(-14deg) rotateX(2deg)}}
+    @keyframes beamFlow{0%{opacity:.3;transform:scaleX(.8)}50%{opacity:.8;transform:scaleX(1.1)}100%{opacity:.3;transform:scaleX(.8)}}
+    @keyframes orbPulse{0%,100%{transform:scale(1);opacity:.6}50%{transform:scale(1.15);opacity:1}}
+    @keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
 
-    :root {
-      --blue:        #1D6FFF;
-      --blue-light:  #4F94FF;
-      --blue-dark:   #0A4FCC;
-      --cyan:        #00D4FF;
-      --navy:        #060C1A;
-      --navy2:       #0C1426;
-      --navy3:       #111D35;
-      --white:       #FFFFFF;
-      --green:       #00E583;
-      --red:         #FF4D6A;
-      --amber:       #FFB800;
-      --muted:       #5A6A8A;
-      --border:      rgba(29,111,255,0.18);
-      --glow:        rgba(29,111,255,0.35);
-    }
+    .up{animation:fadeUp .7s cubic-bezier(.22,1,.36,1) forwards}
+    .in{animation:fadeIn .45s ease both}
+    .float{animation:float 6s ease-in-out infinite}
+    .phone-float{animation:phoneSpin 7s ease-in-out infinite}
+    .cglow{animation:cyanGlow 2.5s ease-in-out infinite}
+    .pglow{animation:purpleGlow 2.5s ease-in-out infinite}
 
-    html { scroll-behavior: smooth; }
+    .glass{background:rgba(255,255,255,.035);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.07)}
+    .glass-cyan{background:rgba(0,212,255,.055);backdrop-filter:blur(20px);border:1px solid rgba(0,212,255,.22)}
+    .glass-purple{background:rgba(139,61,255,.06);backdrop-filter:blur(20px);border:1px solid rgba(139,61,255,.22)}
+    .glass-dark{background:rgba(5,7,15,.85);backdrop-filter:blur(30px);border:1px solid rgba(255,255,255,.08)}
 
-    body {
-      font-family: 'Mulish', sans-serif;
-      background: var(--navy);
-      color: var(--white);
-      overflow-x: hidden;
-    }
+    .btn-neon{background:linear-gradient(135deg,#8B3DFF,#00D4FF);color:#fff;border:none;border-radius:16px;padding:18px 44px;font-family:'Urbanist',sans-serif;font-weight:800;font-size:17px;cursor:pointer;transition:all .25s cubic-bezier(.22,1,.36,1);box-shadow:0 0 30px rgba(0,212,255,.35),0 0 70px rgba(139,61,255,.2),0 8px 32px rgba(0,0,0,.4);letter-spacing:.3px;position:relative;overflow:hidden}
+    .btn-neon::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.15),transparent);opacity:0;transition:opacity .25s}
+    .btn-neon:hover{transform:translateY(-4px) scale(1.02);box-shadow:0 0 60px rgba(0,212,255,.55),0 0 110px rgba(139,61,255,.35),0 12px 40px rgba(0,0,0,.5)}
+    .btn-neon:hover::before{opacity:1}
+    .btn-neon:active{transform:translateY(0) scale(.99)}
+    .btn-outline{background:transparent;color:rgba(255,255,255,.65);border:1px solid rgba(255,255,255,.13);border-radius:14px;padding:13px 26px;font-family:'Urbanist',sans-serif;font-weight:600;font-size:14px;cursor:pointer;transition:all .22s}
+    .btn-outline:hover{border-color:var(--cyan);color:var(--cyan);background:rgba(0,212,255,.06)}
 
-    h1,h2,h3,h4,h5,h6 {
-      font-family: 'Urbanist', sans-serif;
-    }
-
-    ::-webkit-scrollbar { width: 4px; }
-    ::-webkit-scrollbar-track { background: var(--navy); }
-    ::-webkit-scrollbar-thumb { background: var(--blue); border-radius: 4px; }
-
-    @keyframes float {
-      0%,100% { transform: translateY(0px); }
-      50%      { transform: translateY(-14px); }
-    }
-    @keyframes glow-pulse {
-      0%,100% { box-shadow: 0 0 24px rgba(29,111,255,0.35); }
-      50%      { box-shadow: 0 0 56px rgba(29,111,255,0.7), 0 0 100px rgba(0,212,255,0.15); }
-    }
-    @keyframes ticker {
-      0%   { transform: translateX(0); }
-      100% { transform: translateX(-50%); }
-    }
-    @keyframes fadeInUp {
-      from { opacity: 0; transform: translateY(28px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to   { opacity: 1; }
-    }
-    @keyframes slideInRight {
-      from { opacity: 0; transform: translateX(36px); }
-      to   { opacity: 1; transform: translateX(0); }
-    }
-    @keyframes blink {
-      0%,100% { opacity: 1; }
-      50%      { opacity: 0.25; }
-    }
-    @keyframes spin {
-      from { transform: rotate(0deg); }
-      to   { transform: rotate(360deg); }
-    }
-    @keyframes shimmer {
-      0%   { background-position: -200% 0; }
-      100% { background-position: 200% 0; }
-    }
-    @keyframes callAnim {
-      0%,100%    { transform: scale(1); }
-      10%,30%,50%{ transform: scale(1.04); }
-      20%,40%    { transform: scale(0.97); }
-    }
-    @keyframes particleRise {
-      0%   { transform: translateY(110vh) rotate(0deg); opacity: 0; }
-      8%   { opacity: 0.7; }
-      92%  { opacity: 0.7; }
-      100% { transform: translateY(-60px) rotate(540deg); opacity: 0; }
-    }
-    @keyframes waveform {
-      0%,100% { height: 4px; }
-      50%      { height: 22px; }
-    }
-    @keyframes scanH {
-      0%   { transform: translateY(0); opacity: 0.06; }
-      50%  { opacity: 0.12; }
-      100% { transform: translateY(100vh); opacity: 0.06; }
-    }
-    @keyframes borderGlow {
-      0%,100% { border-color: rgba(29,111,255,0.25); }
-      50%      { border-color: rgba(0,212,255,0.6); }
-    }
-
-    .anim-up   { animation: fadeInUp 0.65s ease both; }
-    .anim-in   { animation: fadeIn 0.4s ease both; }
-    .float     { animation: float 5s ease-in-out infinite; }
-    .glow-pulse{ animation: glow-pulse 2.5s ease-in-out infinite; }
-    .blink     { animation: blink 1.6s ease infinite; }
-
-    .glass {
-      background: rgba(255,255,255,0.03);
-      backdrop-filter: blur(18px);
-      border: 1px solid rgba(255,255,255,0.07);
-    }
-    .glass-blue {
-      background: rgba(29,111,255,0.07);
-      backdrop-filter: blur(24px);
-      border: 1px solid rgba(29,111,255,0.22);
-    }
-    .glass-strong {
-      background: rgba(255,255,255,0.055);
-      backdrop-filter: blur(32px);
-      border: 1px solid rgba(255,255,255,0.1);
-    }
-
-    .btn-primary {
-      background: linear-gradient(135deg, #1D6FFF 0%, #00D4FF 100%);
-      color: white;
-      border: none;
-      border-radius: 12px;
-      padding: 14px 28px;
-      font-family: 'Urbanist', sans-serif;
-      font-weight: 700;
-      font-size: 15px;
-      cursor: pointer;
-      transition: all 0.22s;
-      box-shadow: 0 4px 24px rgba(29,111,255,0.38);
-      letter-spacing: 0.3px;
-    }
-    .btn-primary:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 10px 36px rgba(29,111,255,0.55);
-    }
-    .btn-secondary {
-      background: rgba(29,111,255,0.08);
-      color: var(--blue-light);
-      border: 1px solid rgba(29,111,255,0.3);
-      border-radius: 12px;
-      padding: 14px 28px;
-      font-family: 'Urbanist', sans-serif;
-      font-weight: 600;
-      font-size: 15px;
-      cursor: pointer;
-      transition: all 0.22s;
-    }
-    .btn-secondary:hover {
-      background: rgba(29,111,255,0.15);
-      transform: translateY(-1px);
-    }
-
-    input, select, textarea { font-family: 'Mulish', sans-serif; }
-
-    input::placeholder { color: var(--muted); }
-    input:focus, select:focus {
-      border-color: rgba(29,111,255,0.6) !important;
-      box-shadow: 0 0 0 3px rgba(29,111,255,0.15);
-      outline: none;
-    }
+    .step-card{position:relative;overflow:hidden;transition:all .3s cubic-bezier(.22,1,.36,1)}
+    .step-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(0,212,255,.04),rgba(139,61,255,.04));opacity:0;transition:opacity .3s}
+    .step-card:hover{transform:translateY(-6px);border-color:rgba(0,212,255,.4)!important}
+    .step-card:hover::before{opacity:1}
   `}</style>
 );
 
-// ─── MOCK DATA ────────────────────────────────────────────────────────────────
-const NOMES = ["Ana Lima","Carlos Souza","Fernanda Rocha","João Pedro","Mariana Costa","Rafael Mendes","Isabela Ferreira","Bruno Alves","Patrícia Gomes","Thiago Santos","Camila Oliveira","Lucas Barbosa","Juliana Neves","Diego Carvalho","Bianca Ribeiro","Marcos Vieira","Amanda Pereira","Rodrigo Andrade","Letícia Moraes","Felipe Castro","Natália Cunha","Gustavo Lopes","Daniela Ramos","Eduardo Batista","Vanessa Pinto","Pedro Henrique","Aline Correia","William Freitas","Tatiane Monteiro","André Figueiredo"];
-const TIPOS = ["Consulta Geral","Exame Rápido","Retorno Médico","Odontologia","Nutrição","Vacinação","Triagem","Atendimento Prioritário","Farmácia","Recepção"];
-const GUICHES = ["Guichê 01","Guichê 02","Guichê 03","Sala A","Sala B","Consultório 1","Consultório 2","Balcão Central"];
+// ─── DATA ─────────────────────────────────────────────────────────────────────
+const LUGARES = [
+  {id:"bb",    nome:"Banco do Brasil",       icon:"🏦",tipo:"Banco",         cor:"#00D4FF",tipos:["Abertura de Conta","Empréstimo","Cartão de Crédito","Investimentos","Caixa","Gerente"]},
+  {id:"itau",  nome:"Itaú Unibanco",         icon:"🏦",tipo:"Banco",         cor:"#FF6B00",tipos:["Abertura de Conta","Empréstimo","Cartão","Atendimento Geral"]},
+  {id:"rest",  nome:"Restaurante Sabor Real", icon:"🍽",tipo:"Restaurante",  cor:"#FF4060",tipos:["Mesa p/ 1","Mesa p/ 2","Mesa p/ 4","Mesa p/ 6+","Balcão","Retirada"]},
+  {id:"barb",  nome:"Barbearia Apex",         icon:"✂️",tipo:"Barbearia",   cor:"#8B3DFF",tipos:["Corte Simples","Corte + Barba","Barba Completa","Progressiva","Coloração"]},
+  {id:"det",   nome:"DETRAN-SP",              icon:"🚗",tipo:"Órgão Público",cor:"#00F5A0",tipos:["CNH Renovação","1ª Habilitação","Licenciamento","Transferência","Multas"]},
+  {id:"cor",   nome:"Correios",               icon:"📬",tipo:"Correios",     cor:"#FFB800",tipos:["Envio","Retirada","SEDEX","PAC","Registrado","Atendimento"]},
+  {id:"cart",  nome:"Cartório 1º Ofício",     icon:"📋",tipo:"Cartório",     cor:"#10D9A8",tipos:["Escritura","Registro","Certidão","Reconhecimento de Firma","Autenticação"]},
+  {id:"farm",  nome:"Farmácia Popular",       icon:"💊",tipo:"Farmácia",     cor:"#00F5A0",tipos:["Medicamentos","Vacinas","Aferição","Testes Rápidos"]},
+];
 
-const rng = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
-const pick = arr => arr[rng(0, arr.length - 1)];
+const NOMES=["Ana Lima","Carlos Souza","Fernanda Rocha","João Pedro","Mariana Costa","Rafael Mendes","Isabela Ferreira","Bruno Alves","Patrícia Gomes","Thiago Santos","Camila Oliveira","Lucas Barbosa","Juliana Neves","Diego Carvalho","Bianca Ribeiro","Marcos Vieira","Amanda Pereira","Rodrigo Andrade","Letícia Moraes","Felipe Castro"];
+const GUICHES=["Guichê 01","Guichê 02","Guichê 03","Mesa A","Mesa B","Caixa 1","Caixa 2","Balcão"];
 
-let globalCounter = rng(240, 290);
-const genTicket = () => { globalCounter++; return `ZF-${globalCounter}`; };
-
-const genQueue = (n = 13) =>
-  Array.from({ length: n }, (_, i) => ({
-    id: Math.random().toString(36).slice(2),
-    ticket: genTicket(),
-    nome: pick(NOMES),
-    tipo: pick(TIPOS),
-    status: i === 0 ? "em_atendimento" : i === 1 ? "proximo" : "aguardando",
-    guiche: i === 0 ? pick(GUICHES) : null,
-    entrou: Date.now() - rng(2, 45) * 60000,
-    prioridade: Math.random() > 0.8 ? "preferencial" : "normal",
-  }));
+const rng=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+const pick=a=>a[rng(0,a.length-1)];
+let counter=rng(40,80);
+const mkTicket=()=>{counter++;return`T-${String(counter).padStart(3,"0")}`;};
+const mkQueue=(n=12)=>Array.from({length:n},(_,i)=>({
+  id:Math.random().toString(36).slice(2),ticket:mkTicket(),nome:pick(NOMES),
+  tipo:pick(LUGARES[0].tipos),status:i===0?"em_atendimento":i===1?"proximo":"aguardando",
+  guiche:i===0?pick(GUICHES):null,entrou:Date.now()-rng(2,40)*60000,
+  prioridade:Math.random()>.82?"preferencial":"normal",
+}));
 
 // ─── CONTEXT ──────────────────────────────────────────────────────────────────
-const QueueCtx = createContext(null);
+const Ctx=createContext(null);
+const useApp=()=>useContext(Ctx);
 
-const QueueProvider = ({ children }) => {
-  const [queue, setQueue]   = useState(genQueue(14));
-  const [called, setCalled] = useState(null);
-  const [history, setHistory] = useState([]);
-  const [stats, setStats]   = useState({ total: rng(1200,1400), hoje: rng(88,120), tempo_medio: rng(6,10), satisfacao: 97 });
-  const [myTicket, setMyTicket] = useState(null);
-  const [toasts, setToasts] = useState([]);
-  const tick = useRef(0);
+const Provider=({children})=>{
+  const[queue,setQ]=useState(mkQueue(13));
+  const[history,setH]=useState([]);
+  const[myTicket,setMy]=useState(null);
+  const[lugar,setLugar]=useState(null);
+  const[toasts,setToasts]=useState([]);
+  const[stats,setStats]=useState({hoje:rng(88,120),total:rng(1200,1400),tempo:rng(6,10),satisf:97});
+  const tick=useRef(0);
 
-  const toast = useCallback((msg, type = "info") => {
-    const id = Date.now();
-    setToasts(t => [...t, { id, msg, type }]);
-    setTimeout(() => setToasts(t => t.filter(x => x.id !== id)), 4200);
-  }, []);
+  const toast=useCallback((msg,type="info")=>{
+    const id=Date.now();setToasts(t=>[...t,{id,msg,type}]);
+    setTimeout(()=>setToasts(t=>t.filter(x=>x.id!==id)),4200);
+  },[]);
 
-  useEffect(() => {
-    const iv = setInterval(() => {
-      tick.current++;
-      const t = tick.current;
-      setQueue(prev => {
-        let q = [...prev];
-        if (t % 8 === 0) {
-          q = [...q, { id: Math.random().toString(36).slice(2), ticket: genTicket(), nome: pick(NOMES), tipo: pick(TIPOS), status: "aguardando", guiche: null, entrou: Date.now(), prioridade: Math.random() > 0.85 ? "preferencial" : "normal" }];
+  useEffect(()=>{
+    const iv=setInterval(()=>{
+      tick.current++;const t=tick.current;
+      setQ(prev=>{
+        let q=[...prev];
+        if(t%8===0)q=[...q,{id:Math.random().toString(36).slice(2),ticket:mkTicket(),nome:pick(NOMES),tipo:pick(LUGARES[0].tipos),status:"aguardando",guiche:null,entrou:Date.now(),prioridade:Math.random()>.85?"preferencial":"normal"}];
+        if(t%12===0&&q.length>2){
+          const em=q.find(x=>x.status==="em_atendimento");
+          if(em){setH(h=>[{...em,status:"concluido"},...h.slice(0,20)]);setStats(s=>({...s,total:s.total+1,hoje:s.hoje+1}));q=q.filter(x=>x.id!==em.id);}
+          q=q.map((p,i)=>({...p,status:i===0?"em_atendimento":i===1?"proximo":"aguardando",guiche:i===0?(p.guiche||pick(GUICHES)):null}));
+          if(q[0])toast(`${q[0].ticket} — chamado para ${q[0].guiche}`,"success");
         }
-        if (t % 12 === 0 && q.length > 2) {
-          const em = q.find(x => x.status === "em_atendimento");
-          if (em) { setHistory(h => [{ ...em, status: "concluido", fim: Date.now() }, ...h.slice(0,20)]); setStats(s => ({ ...s, total: s.total+1, hoje: s.hoje+1 })); q = q.filter(x => x.id !== em.id); }
-          q = q.map((p,i) => ({ ...p, status: i===0?"em_atendimento":i===1?"proximo":"aguardando", guiche: i===0?(p.guiche||pick(GUICHES)):null }));
-          if (q[0]) { setCalled(q[0]); toast(`${q[0].ticket} — ${q[0].nome.split(" ")[0]} chamado para ${q[0].guiche}`, "success"); }
-        }
-        q = q.map((p,i) => ({ ...p, status: i===0?"em_atendimento":i===1?"proximo":"aguardando", guiche: i===0?(p.guiche||pick(GUICHES)):null }));
+        q=q.map((p,i)=>({...p,status:i===0?"em_atendimento":i===1?"proximo":"aguardando",guiche:i===0?(p.guiche||pick(GUICHES)):null}));
         return q;
       });
-      if (t % 20 === 0) setStats(s => ({ ...s, tempo_medio: Math.max(4, s.tempo_medio + (Math.random()>0.5?0.4:-0.3)) }));
-    }, 1000);
-    return () => clearInterval(iv);
-  }, [toast]);
+      if(t%20===0)setStats(s=>({...s,tempo:Math.max(4,s.tempo+(Math.random()>.5?.4:-.3))}));
+    },1000);
+    return()=>clearInterval(iv);
+  },[toast]);
 
-  const joinQueue = useCallback((nome, tipo, prioridade) => {
-    const ticket = genTicket();
-    const entry = { id: Math.random().toString(36).slice(2), ticket, nome, tipo, status: "aguardando", guiche: null, entrou: Date.now(), prioridade };
-    setQueue(prev => [...prev, entry]);
-    setMyTicket(entry);
-    toast(`Você entrou na fila! Senha: ${ticket}`, "success");
-    return entry;
-  }, [toast]);
+  const joinQueue=useCallback((nome,tipo,prioridade)=>{
+    const ticket=mkTicket();
+    const e={id:Math.random().toString(36).slice(2),ticket,nome,tipo,status:"aguardando",guiche:null,entrou:Date.now(),prioridade};
+    setQ(p=>[...p,e]);setMy(e);
+    toast(`Você entrou na fila! Senha: ${ticket}`,"success");
+    return e;
+  },[toast]);
 
-  const getMyPos = useCallback(() => {
-    if (!myTicket) return null;
-    const i = queue.findIndex(q => q.id === myTicket.id);
-    return i === -1 ? null : i;
-  }, [myTicket, queue]);
+  const getPos=useCallback(()=>{
+    if(!myTicket)return null;
+    const i=queue.findIndex(q=>q.id===myTicket.id);
+    return i===-1?null:i;
+  },[myTicket,queue]);
 
+  return <Ctx.Provider value={{queue,history,myTicket,lugar,setLugar,toasts,joinQueue,getPos,stats}}>{children}</Ctx.Provider>;
+};
+
+// ─── CINEMATIC BACKGROUND ─────────────────────────────────────────────────────
+const CinematicBG = () => {
   return (
-    <QueueCtx.Provider value={{ queue, called, history, stats, myTicket, toasts, joinQueue, getMyPos }}>
-      {children}
-    </QueueCtx.Provider>
+    <div style={{position:"fixed",inset:0,pointerEvents:"none",zIndex:0,overflow:"hidden"}}>
+      {/* Deep space base */}
+      <div style={{position:"absolute",inset:0,background:"radial-gradient(ellipse 120% 80% at 50% 0%,rgba(15,8,40,.9) 0%,#05070F 60%)"}}/>
+
+      {/* Primary orb — top left cyan */}
+      <div style={{position:"absolute",top:"-20%",left:"-10%",width:900,height:900,borderRadius:"50%",background:"radial-gradient(circle,rgba(0,212,255,.14) 0%,rgba(0,100,200,.06) 40%,transparent 70%)",filter:"blur(60px)",animation:"orbPulse 6s ease-in-out infinite"}}/>
+      {/* Secondary orb — right purple */}
+      <div style={{position:"absolute",top:"10%",right:"-10%",width:800,height:800,borderRadius:"50%",background:"radial-gradient(circle,rgba(139,61,255,.16) 0%,rgba(80,20,180,.07) 40%,transparent 70%)",filter:"blur(70px)",animation:"orbPulse 8s 2s ease-in-out infinite"}}/>
+      {/* Bottom accent */}
+      <div style={{position:"absolute",bottom:"-10%",left:"20%",width:700,height:500,borderRadius:"50%",background:"radial-gradient(circle,rgba(139,61,255,.1) 0%,rgba(0,212,255,.06) 50%,transparent 70%)",filter:"blur(80px)"}}/>
+
+      {/* Animated wave layers — the key effect from images */}
+      <svg style={{position:"absolute",bottom:0,left:0,right:0,width:"200%",height:"45%",opacity:.5,animation:"waveAnim 18s linear infinite"}} viewBox="0 0 2400 400" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="wg1" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="rgba(0,212,255,0)"/>
+            <stop offset="20%" stopColor="rgba(0,212,255,.5)"/>
+            <stop offset="50%" stopColor="rgba(139,61,255,.6)"/>
+            <stop offset="80%" stopColor="rgba(0,212,255,.4)"/>
+            <stop offset="100%" stopColor="rgba(0,212,255,0)"/>
+          </linearGradient>
+          <linearGradient id="wg2" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="rgba(139,61,255,0)"/>
+            <stop offset="30%" stopColor="rgba(139,61,255,.4)"/>
+            <stop offset="60%" stopColor="rgba(0,212,255,.5)"/>
+            <stop offset="100%" stopColor="rgba(139,61,255,0)"/>
+          </linearGradient>
+        </defs>
+        <path d="M0,280 C200,200 400,360 600,260 C800,160 1000,320 1200,240 C1400,160 1600,300 1800,220 C2000,140 2200,280 2400,200 L2400,400 L0,400Z" fill="url(#wg1)" opacity=".6"/>
+        <path d="M0,320 C300,240 500,380 700,300 C900,220 1100,360 1300,280 C1500,200 1700,340 1900,260 C2100,180 2300,320 2400,240 L2400,400 L0,400Z" fill="url(#wg2)" opacity=".4"/>
+      </svg>
+
+      {/* Wave layer 2 — faster, different phase */}
+      <svg style={{position:"absolute",bottom:0,left:0,right:0,width:"200%",height:"30%",opacity:.35,animation:"waveAnim 12s linear infinite reverse"}} viewBox="0 0 2400 300" preserveAspectRatio="none">
+        <path d="M0,200 C400,120 600,260 900,180 C1200,100 1400,240 1700,160 C2000,80 2200,220 2400,140 L2400,300 L0,300Z" fill="rgba(0,212,255,.3)"/>
+      </svg>
+
+      {/* Floating hexagons */}
+      {Array.from({length:6},(_,i)=>(
+        <div key={i} style={{position:"absolute",left:`${[8,22,52,68,82,38][i]}%`,top:`${[12,58,18,72,32,48][i]}%`,width:[90,65,110,75,55,95][i],height:[90,65,110,75,55,95][i],border:`1px solid rgba(0,212,255,.1)`,borderRadius:10,transform:"rotate(45deg)",animation:`hexFloat ${[9,11,8,13,10,12][i]}s ${i*.8}s ease-in-out infinite`}}/>
+      ))}
+
+      {/* Energy particles */}
+      {Array.from({length:16},(_,i)=>(
+        <div key={i} style={{position:"absolute",bottom:-20,left:`${rng(3,97)}%`,width:rng(1,3),height:rng(8,20),borderRadius:2,background:i%3===0?"var(--cyan)":i%3===1?"var(--purple)":"rgba(217,70,239,.7)",opacity:(rng(2,6))/10,animation:`particleUp ${rng(14,24)}s ${rng(0,10)}s linear infinite`,filter:"blur(.5px)"}}/>
+      ))}
+
+      {/* Grid */}
+      <div style={{position:"absolute",inset:0,backgroundImage:"linear-gradient(rgba(0,212,255,.018) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,.018) 1px,transparent 1px)",backgroundSize:"64px 64px",maskImage:"radial-gradient(ellipse 90% 90% at 50% 50%,black 30%,transparent 100%)"}}/>
+    </div>
   );
 };
 
-const useQueue = () => useContext(QueueCtx);
-
-// ─── PARTICLES ────────────────────────────────────────────────────────────────
-const Particles = () => (
-  <div style={{ position:"fixed",inset:0,pointerEvents:"none",zIndex:0,overflow:"hidden" }}>
-    {Array.from({length:20},(_,i)=>(
-      <div key={i} style={{
-        position:"absolute", bottom:-20, left:`${rng(3,97)}%`,
-        width:rng(2,5), height:rng(2,5), borderRadius:"50%",
-        background: i%3===0?"var(--cyan)":"var(--blue)",
-        opacity:(rng(2,7))/10,
-        animation:`particleRise ${rng(14,28)}s ${rng(0,12)}s linear infinite`,
-      }}/>
-    ))}
-    <div style={{ position:"absolute",top:"15%",left:"10%",width:700,height:700,borderRadius:"50%",background:"radial-gradient(circle,rgba(29,111,255,0.07) 0%,transparent 70%)",filter:"blur(50px)" }}/>
-    <div style={{ position:"absolute",bottom:"5%",right:"5%",width:500,height:500,borderRadius:"50%",background:"radial-gradient(circle,rgba(0,212,255,0.05) 0%,transparent 70%)",filter:"blur(40px)" }}/>
-    <div style={{ position:"absolute",top:"60%",left:"50%",width:300,height:300,borderRadius:"50%",background:"radial-gradient(circle,rgba(29,111,255,0.05) 0%,transparent 70%)",filter:"blur(30px)" }}/>
-    {/* Horizontal scan line */}
-    <div style={{ position:"absolute",left:0,right:0,height:1,background:"linear-gradient(90deg,transparent,rgba(29,111,255,0.15),transparent)",animation:"scanH 8s linear infinite" }}/>
-  </div>
-);
-
 // ─── TOASTS ───────────────────────────────────────────────────────────────────
-const Toasts = () => {
-  const { toasts } = useQueue();
-  return (
-    <div style={{ position:"fixed",top:20,right:20,zIndex:9999,display:"flex",flexDirection:"column",gap:10,maxWidth:340 }}>
-      {toasts.map(n => (
-        <div key={n.id} style={{
-          padding:"13px 18px", borderRadius:14,
-          background:"rgba(6,12,26,0.92)", backdropFilter:"blur(20px)",
-          border: n.type==="success"?"1px solid rgba(0,229,131,0.35)":"1px solid rgba(29,111,255,0.4)",
-          display:"flex",alignItems:"center",gap:10,fontSize:14,fontWeight:600,
-          animation:"slideInRight 0.4s ease both",
-          boxShadow: n.type==="success"?"0 4px 24px rgba(0,229,131,0.12)":"0 4px 24px rgba(29,111,255,0.18)",
-        }}>
-          <div style={{ width:8,height:8,borderRadius:"50%",background:n.type==="success"?"var(--green)":"var(--cyan)",flexShrink:0,animation:"blink 1s infinite" }}/>
+const Toasts=()=>{
+  const{toasts}=useApp();
+  return(
+    <div style={{position:"fixed",top:22,right:22,zIndex:9999,display:"flex",flexDirection:"column",gap:10,maxWidth:340}}>
+      {toasts.map(n=>(
+        <div key={n.id} style={{padding:"14px 20px",borderRadius:16,background:"rgba(5,7,15,.97)",backdropFilter:"blur(30px)",border:n.type==="success"?"1px solid rgba(0,245,160,.35)":"1px solid rgba(0,212,255,.35)",display:"flex",alignItems:"center",gap:11,fontSize:14,fontWeight:600,animation:"slideR .4s ease both",boxShadow:n.type==="success"?"0 4px 30px rgba(0,245,160,.2),0 0 0 1px rgba(0,245,160,.08)":"0 4px 30px rgba(0,212,255,.2)"}}>
+          <div style={{width:8,height:8,borderRadius:"50%",background:n.type==="success"?"var(--green)":"var(--cyan)",animation:"blink 1s infinite",flexShrink:0,boxShadow:n.type==="success"?"0 0 10px var(--green)":"0 0 10px var(--cyan)"}}/>
           {n.msg}
         </div>
       ))}
@@ -300,446 +225,446 @@ const Toasts = () => {
 };
 
 // ─── NAVBAR ───────────────────────────────────────────────────────────────────
-const Navbar = ({ page, setPage }) => {
-  const [scrolled, setScrolled] = useState(false);
-  useEffect(()=>{ const fn=()=>setScrolled(window.scrollY>40); window.addEventListener("scroll",fn); return()=>window.removeEventListener("scroll",fn); },[]);
-
-  return (
-    <nav style={{
-      position:"fixed",top:0,left:0,right:0,zIndex:1000,
-      padding:"0 28px",height:66,
-      display:"flex",alignItems:"center",justifyContent:"space-between",
-      background: scrolled?"rgba(6,12,26,0.88)":"transparent",
-      backdropFilter: scrolled?"blur(24px)":"none",
-      borderBottom: scrolled?"1px solid rgba(29,111,255,0.12)":"none",
-      transition:"all 0.35s",
-    }}>
-      <div onClick={()=>setPage("home")} style={{ cursor:"pointer",display:"flex",alignItems:"center",gap:11 }}>
-        <div style={{
-          width:38,height:38,borderRadius:12,
-          background:"linear-gradient(135deg,#1D6FFF,#00D4FF)",
-          display:"flex",alignItems:"center",justifyContent:"center",
-          fontSize:17,fontWeight:900,fontFamily:"Urbanist",
-          boxShadow:"0 4px 18px rgba(29,111,255,0.45)",
-        }}>Z</div>
-        <span style={{ fontFamily:"Urbanist",fontWeight:900,fontSize:21,letterSpacing:"-0.5px" }}>
-          Zero<span style={{ color:"var(--cyan)" }}>Fila</span>
-        </span>
+const Navbar=({page,setPage})=>{
+  const[sc,setSc]=useState(false);
+  useEffect(()=>{const fn=()=>setSc(window.scrollY>40);window.addEventListener("scroll",fn);return()=>window.removeEventListener("scroll",fn);},[]);
+  return(
+    <nav style={{position:"fixed",top:0,left:0,right:0,zIndex:1000,padding:"0 32px",height:68,display:"flex",alignItems:"center",justifyContent:"space-between",background:sc?"rgba(5,7,15,.88)":"transparent",backdropFilter:sc?"blur(28px)":"none",borderBottom:sc?"1px solid rgba(0,212,255,.12)":"none",transition:"all .35s"}}>
+      <div onClick={()=>setPage("home")} style={{cursor:"pointer",display:"flex",alignItems:"center",gap:11}}>
+        {/* Logo mark */}
+        <div style={{width:38,height:38,borderRadius:11,background:"linear-gradient(135deg,#8B3DFF,#00D4FF)",display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"Urbanist",fontWeight:900,fontSize:18,boxShadow:"0 0 24px rgba(0,212,255,.4),0 0 48px rgba(139,61,255,.2)"}}>F</div>
+        <span style={{fontFamily:"Urbanist",fontWeight:900,fontSize:21,letterSpacing:"-.4px"}}>Fila<span style={{background:"linear-gradient(90deg,#8B3DFF,#00D4FF)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}}>Zero</span></span>
       </div>
-
-      <div style={{ display:"flex",gap:6,alignItems:"center" }}>
-        {[{id:"painel",label:"Painel"},{id:"admin",label:"Admin"},{id:"login",label:"Login"}].map(item=>(
-          <button key={item.id} onClick={()=>setPage(item.id)} style={{
-            background: page===item.id?"rgba(29,111,255,0.18)":"transparent",
-            color: page===item.id?"var(--blue-light)":"var(--muted)",
-            border:"1px solid",
-            borderColor: page===item.id?"rgba(29,111,255,0.45)":"transparent",
-            borderRadius:9,padding:"7px 15px",cursor:"pointer",
-            fontSize:13,fontWeight:600,fontFamily:"Urbanist",
-            transition:"all 0.2s",
-          }}>{item.label}</button>
+      <div style={{display:"flex",gap:6}}>
+        {[{id:"painel",l:"Painel"},{id:"admin",l:"Admin"}].map(x=>(
+          <button key={x.id} onClick={()=>setPage(x.id)} style={{background:page===x.id?"rgba(0,212,255,.1)":"transparent",color:page===x.id?"var(--cyan)":"var(--muted)",border:"1px solid",borderColor:page===x.id?"rgba(0,212,255,.4)":"transparent",borderRadius:10,padding:"7px 16px",cursor:"pointer",fontSize:13,fontWeight:600,fontFamily:"Urbanist",transition:"all .2s"}}>{x.l}</button>
         ))}
-        <button onClick={()=>setPage("fila")} className="btn-primary" style={{ padding:"9px 22px",fontSize:14,borderRadius:10 }}>
-          Entrar na Fila →
-        </button>
       </div>
     </nav>
   );
 };
 
-// ─── STATUS BADGE ─────────────────────────────────────────────────────────────
-const Badge = ({ status, small }) => {
-  const M = {
-    em_atendimento:{ label:"Em atendimento", color:"#4F94FF", bg:"rgba(29,111,255,0.16)" },
-    proximo:       { label:"Próximo",         color:"#00D4FF", bg:"rgba(0,212,255,0.13)" },
-    aguardando:    { label:"Aguardando",      color:"#5A6A8A", bg:"rgba(90,106,138,0.12)" },
-    concluido:     { label:"Concluído",       color:"#00E583", bg:"rgba(0,229,131,0.14)" },
-  };
-  const s = M[status]||M.aguardando;
-  return (
-    <span style={{
-      background:s.bg, color:s.color,
-      border:`1px solid ${s.color}40`,
-      borderRadius:small?6:9,
-      padding:small?"3px 8px":"5px 13px",
-      fontSize:small?10:12,fontWeight:700,
-      letterSpacing:0.3,whiteSpace:"nowrap",
-    }}>{s.label}</span>
-  );
+// ─── BADGE ────────────────────────────────────────────────────────────────────
+const Badge=({status,small})=>{
+  const M={em_atendimento:{l:"Em atendimento",c:"#00D4FF",bg:"rgba(0,212,255,.1)"},proximo:{l:"Próximo",c:"#8B3DFF",bg:"rgba(139,61,255,.1)"},aguardando:{l:"Aguardando",c:"#4A5570",bg:"rgba(74,85,112,.1)"},concluido:{l:"Concluído",c:"#00F5A0",bg:"rgba(0,245,160,.1)"}};
+  const s=M[status]||M.aguardando;
+  return <span style={{background:s.bg,color:s.c,border:`1px solid ${s.c}40`,borderRadius:small?7:9,padding:small?"3px 9px":"5px 13px",fontSize:small?10:12,fontWeight:700,whiteSpace:"nowrap",boxShadow:`0 0 8px ${s.c}25`}}>{s.l}</span>;
 };
 
-// ─── LIVE PREVIEW ─────────────────────────────────────────────────────────────
-const LivePreview = ({ queue }) => (
-  <div className="glass-blue glow-pulse" style={{ borderRadius:24,padding:22,maxWidth:480,width:"100%" }}>
-    <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16 }}>
-      <div style={{ display:"flex",gap:6 }}>
-        {["#FF5F57","#FEBC2E","#28C840"].map(c=><div key={c} style={{ width:11,height:11,borderRadius:"50%",background:c }}/>)}
-      </div>
-      <div style={{ display:"flex",gap:7,alignItems:"center" }}>
-        <div style={{ width:7,height:7,borderRadius:"50%",background:"var(--green)",animation:"blink 1.2s infinite" }}/>
-        <span style={{ fontSize:12,color:"var(--muted)",fontWeight:600 }}>Ao vivo agora</span>
-      </div>
-    </div>
-    <div style={{ display:"flex",flexDirection:"column",gap:8 }}>
-      {queue.slice(0,5).map((p,i)=>(
-        <div key={p.id} style={{
-          display:"flex",alignItems:"center",gap:12,
-          padding:"12px 14px",borderRadius:13,
-          background:i===0?"rgba(29,111,255,0.2)":"rgba(255,255,255,0.025)",
-          border:i===0?"1px solid rgba(29,111,255,0.5)":"1px solid rgba(255,255,255,0.05)",
-          transition:"all 0.5s",
-          animation:i===0?"callAnim 2.5s ease-in-out infinite":"none",
-        }}>
-          <span style={{ fontFamily:"Urbanist",fontWeight:900,fontSize:15,color:i===0?"var(--cyan)":"rgba(255,255,255,0.45)",minWidth:74 }}>{p.ticket}</span>
-          <div style={{ flex:1 }}>
-            <div style={{ fontSize:13,fontWeight:600 }}>{p.nome.split(" ")[0]} {p.nome.split(" ")[1]?.charAt(0)}.</div>
-            <div style={{ fontSize:11,color:"var(--muted)" }}>{p.tipo}</div>
+// ─── PHONE MOCKUP — cinematic floating ────────────────────────────────────────
+const PhoneMockup=({queue})=>{
+  const em=queue[0];
+  const pos=2;
+  return(
+    <div style={{position:"relative",width:240,margin:"0 auto"}}>
+      {/* Multi-layer glow */}
+      <div style={{position:"absolute",inset:-60,background:"radial-gradient(ellipse,rgba(0,212,255,.22) 0%,rgba(139,61,255,.14) 45%,transparent 70%)",filter:"blur(40px)",zIndex:0,animation:"orbPulse 4s ease-in-out infinite"}}/>
+      {/* Energy rings */}
+      <div style={{position:"absolute",inset:-30,borderRadius:"50%",border:"1px solid rgba(0,212,255,.12)",zIndex:0,animation:"ripple 3s ease-out infinite"}}/>
+      <div style={{position:"absolute",inset:-20,borderRadius:"50%",border:"1px solid rgba(139,61,255,.1)",zIndex:0,animation:"ripple 3s 1s ease-out infinite"}}/>
+
+      {/* Phone chassis */}
+      <div className="phone-float" style={{position:"relative",zIndex:1,background:"linear-gradient(145deg,#1a1f2e,#0d1018)",borderRadius:40,padding:5,boxShadow:"0 40px 100px rgba(0,0,0,.8),0 0 0 1px rgba(255,255,255,.08) inset,0 0 40px rgba(0,212,255,.08)"}}>
+        {/* Side highlights */}
+        <div style={{position:"absolute",top:0,left:0,right:0,bottom:0,borderRadius:40,background:"linear-gradient(135deg,rgba(255,255,255,.08) 0%,transparent 40%,transparent 70%,rgba(0,212,255,.04) 100%)",pointerEvents:"none",zIndex:2}}/>
+
+        {/* Dynamic island */}
+        <div style={{position:"absolute",top:12,left:"50%",transform:"translateX(-50%)",width:88,height:24,background:"#060810",borderRadius:20,zIndex:10,border:"1px solid rgba(255,255,255,.07)",display:"flex",alignItems:"center",justifyContent:"center",gap:4}}>
+          <div style={{width:6,height:6,borderRadius:"50%",background:"rgba(255,255,255,.15)"}}/>
+        </div>
+
+        {/* Screen */}
+        <div style={{background:"var(--bg)",borderRadius:36,padding:"44px 16px 22px",minHeight:450,overflow:"hidden",position:"relative"}}>
+          {/* Status bar */}
+          <div style={{display:"flex",justifyContent:"space-between",fontSize:9,color:"rgba(255,255,255,.45)",marginBottom:16,padding:"0 6px"}}>
+            <span style={{fontWeight:700}}>9:41</span><span>◼◼◼  ▐▐</span>
           </div>
-          <Badge status={p.status} small/>
-        </div>
-      ))}
-    </div>
-  </div>
-);
 
-// ─── QR CODE ──────────────────────────────────────────────────────────────────
-const QRCode = () => {
-  const url = typeof window!=="undefined"?window.location.href:"https://zerofila.app";
-  const src = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(url)}&bgcolor=0C1426&color=FFFFFF&margin=10`;
-  return (
-    <div style={{ display:"inline-block",position:"relative" }}>
-      <div className="glass-blue glow-pulse" style={{ borderRadius:26,padding:26,display:"inline-block",animation:"borderGlow 3s ease infinite" }}>
-        <img src={src} alt="QR Code" style={{ width:180,height:180,borderRadius:14,display:"block" }}/>
-        <div style={{ textAlign:"center",marginTop:14 }}>
-          <div style={{ fontFamily:"Urbanist",fontWeight:900,fontSize:19 }}>Zero<span style={{ color:"var(--cyan)" }}>Fila</span></div>
-          <div style={{ fontSize:12,color:"var(--muted)",marginTop:4,fontWeight:500 }}>Escaneie com a câmera do celular</div>
+          {/* App header */}
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20,padding:"0 4px"}}>
+            <div style={{display:"flex",alignItems:"center",gap:7}}>
+              <div style={{width:22,height:22,borderRadius:7,background:"linear-gradient(135deg,#8B3DFF,#00D4FF)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,fontWeight:900,boxShadow:"0 0 10px rgba(0,212,255,.4)"}}>F</div>
+              <span style={{fontFamily:"Urbanist",fontWeight:800,fontSize:14}}>Fila<span style={{background:"linear-gradient(90deg,#8B3DFF,#00D4FF)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}}>Zero</span></span>
+            </div>
+            <div style={{fontSize:15,filter:"drop-shadow(0 0 6px rgba(0,212,255,.6))"}}>🔔</div>
+          </div>
+
+          {/* Main ticket card */}
+          <div style={{background:"rgba(0,212,255,.07)",borderRadius:20,padding:"20px 16px",border:"1px solid rgba(0,212,255,.2)",marginBottom:12,textAlign:"center",position:"relative",overflow:"hidden",boxShadow:"0 0 40px rgba(0,212,255,.1) inset"}}>
+            {/* Top accent line */}
+            <div style={{position:"absolute",top:0,left:0,right:0,height:1.5,background:"linear-gradient(90deg,transparent,rgba(0,212,255,.8),rgba(139,61,255,.8),transparent)"}}/>
+
+            <div style={{fontSize:10,color:"rgba(255,255,255,.45)",fontWeight:700,letterSpacing:2,textTransform:"uppercase",marginBottom:6}}>Próximo na Fila</div>
+            <div style={{fontSize:50,fontWeight:900,fontFamily:"Urbanist",letterSpacing:-1.5,background:"linear-gradient(135deg,#8B3DFF,#00D4FF)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",lineHeight:1,animation:"callPulse 3.5s ease-in-out infinite",textShadow:"none",filter:"drop-shadow(0 0 20px rgba(0,212,255,.5))"}}>
+              {em?.ticket||"T-042"}
+            </div>
+
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:7,marginTop:14}}>
+              {[{l:"Tempo Est.",v:"12min",c:"var(--cyan)"},{l:"Seu Lugar",v:`${pos}°`,c:"white"},{l:"Status",v:"Aguardando",c:"var(--purple)"},{l:"Serviço",v:"Consulta",c:"rgba(255,255,255,.5)"}].map((s,i)=>(
+                <div key={i} style={{background:"rgba(255,255,255,.045)",borderRadius:11,padding:"8px 8px",textAlign:"left",border:"1px solid rgba(255,255,255,.05)"}}>
+                  <div style={{fontSize:8,color:"rgba(255,255,255,.35)",fontWeight:700,letterSpacing:1,marginBottom:2}}>{s.l}</div>
+                  <div style={{fontSize:12,fontWeight:800,color:s.c,fontFamily:"Urbanist"}}>{s.v}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* Progress bar */}
+            <div style={{marginTop:12,background:"rgba(255,255,255,.06)",borderRadius:100,height:4,overflow:"hidden"}}>
+              <div style={{height:"100%",width:"30%",borderRadius:100,background:"linear-gradient(90deg,#8B3DFF,#00D4FF)",boxShadow:"0 0 10px rgba(0,212,255,.6)"}}/>
+            </div>
+          </div>
+
+          {/* Location */}
+          <div style={{background:"rgba(255,255,255,.035)",borderRadius:13,padding:"10px 12px",border:"1px solid rgba(255,255,255,.06)",display:"flex",alignItems:"center",gap:9}}>
+            <span style={{fontSize:13,filter:"drop-shadow(0 0 4px rgba(0,212,255,.5))"}}>📍</span>
+            <div>
+              <div style={{fontSize:11,fontWeight:700}}>Clínica Saúde Total</div>
+              <div style={{fontSize:9,color:"rgba(255,255,255,.35)"}}>São Paulo · 0.8km</div>
+            </div>
+            <div style={{marginLeft:"auto",color:"rgba(0,212,255,.5)",fontSize:16}}>›</div>
+          </div>
+
+          {/* Bottom nav */}
+          <div style={{display:"flex",justifyContent:"space-around",marginTop:16,paddingTop:12,borderTop:"1px solid rgba(255,255,255,.05)"}}>
+            {["🏠","📋","🔔","⚙️"].map((ic,i)=>(
+              <div key={i} style={{fontSize:16,opacity:i===0?1:.35,filter:i===0?"drop-shadow(0 0 6px rgba(0,212,255,.7))":"none"}}>{ic}</div>
+            ))}
+          </div>
         </div>
       </div>
-      <div style={{ position:"absolute",top:-9,right:-9,width:26,height:26,borderRadius:"50%",background:"var(--green)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:700,boxShadow:"0 0 14px rgba(0,229,131,0.5)",animation:"blink 2s infinite" }}>✓</div>
     </div>
   );
 };
 
-// ─── LANDING PAGE ─────────────────────────────────────────────────────────────
-const Landing = ({ setPage }) => {
-  const { stats, queue } = useQueue();
-  const [c, setC] = useState({ a:0, r:0, s:0, e:0 });
-
+// ─── HOME ─────────────────────────────────────────────────────────────────────
+const Home=({setPage})=>{
+  const{queue}=useApp();
+  const[c,setC]=useState({a:0,r:0,s:0,e:0});
   useEffect(()=>{
-    const targets={a:12847,r:73,s:98,e:320};
-    let start=null;
-    const run=ts=>{ if(!start)start=ts; const p=Math.min((ts-start)/2200,1); const e=1-Math.pow(1-p,3); setC({a:Math.floor(e*targets.a),r:Math.floor(e*targets.r),s:Math.floor(e*targets.s),e:Math.floor(e*targets.e)}); if(p<1)requestAnimationFrame(run); };
-    setTimeout(()=>requestAnimationFrame(run),600);
+    let start=null;const run=ts=>{if(!start)start=ts;const p=Math.min((ts-start)/2400,1);const e=1-Math.pow(1-p,3);setC({a:Math.floor(e*12847),r:Math.floor(e*73),s:Math.floor(e*98),e:Math.floor(e*320)});if(p<1)requestAnimationFrame(run);};
+    setTimeout(()=>requestAnimationFrame(run),700);
   },[]);
 
-  const testimonials=[
-    {nome:"Dra. Ana Beatriz Santos",cargo:"Diretora Médica",empresa:"Clínica São Lucas",text:"Reduziram 80% das reclamações de espera. Nossos pacientes adoraram a experiência.",av:"AB"},
-    {nome:"Roberto Fonseca",cargo:"Gerente de Operações",empresa:"Barbearia Apex",text:"A implementação foi instantânea. Em 10 minutos já estava funcionando perfeitamente.",av:"RF"},
-    {nome:"Camila Teixeira",cargo:"Coordenadora",empresa:"Boteco do Chef",text:"Zero reclamações sobre fila desde que instalamos. Simplesmente incrível.",av:"CT"},
-    {nome:"Dr. Marcos Leal",cargo:"Dentista & Sócio",empresa:"OralCare Clínica",text:"Profissionalismo total. A experiência do paciente mudou completamente.",av:"ML"},
-  ];
+  return(
+    <div style={{minHeight:"100vh",overflowX:"hidden"}}>
 
-  return (
-    <div style={{ minHeight:"100vh",overflowX:"hidden" }}>
+      {/* ── HERO ─────────────────────────────────────────────────── */}
+      <section style={{minHeight:"100vh",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"90px 24px 60px",textAlign:"center",position:"relative"}}>
 
-      {/* ── HERO ── */}
-      <section style={{ minHeight:"100vh",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"110px 24px 60px",textAlign:"center",position:"relative" }}>
-        <div style={{ position:"absolute",top:"28%",left:"50%",transform:"translateX(-50%)",width:900,height:650,background:"radial-gradient(ellipse,rgba(29,111,255,0.1) 0%,transparent 70%)",filter:"blur(60px)",pointerEvents:"none" }}/>
-
-        {/* live badge */}
-        <div className="glass-blue anim-up" style={{ display:"inline-flex",alignItems:"center",gap:9,padding:"8px 20px",borderRadius:100,marginBottom:30,animationDelay:"0.05s",opacity:0 }}>
-          <div style={{ width:7,height:7,borderRadius:"50%",background:"var(--green)",animation:"blink 1.4s infinite" }}/>
-          <span style={{ fontSize:13,color:"rgba(255,255,255,0.65)",fontWeight:600 }}>
-            Sistema ativo · <span style={{ color:"var(--cyan)" }}>{queue.length}</span> pessoas na fila agora
+        {/* Live badge */}
+        <div className="glass-cyan up" style={{display:"inline-flex",alignItems:"center",gap:9,padding:"9px 22px",borderRadius:100,marginBottom:34,animationDelay:".05s",opacity:0,boxShadow:"0 0 30px rgba(0,212,255,.12)"}}>
+          <div style={{width:7,height:7,borderRadius:"50%",background:"var(--green)",animation:"blink 1.4s infinite",boxShadow:"0 0 8px var(--green)"}}/>
+          <span style={{fontSize:13,color:"rgba(255,255,255,.7)",fontWeight:600,letterSpacing:.2}}>
+            Sistema ativo · <span style={{color:"var(--cyan)",fontWeight:800}}>{queue.length}</span> pessoas na fila agora
           </span>
         </div>
 
-        <h1 className="anim-up" style={{ fontSize:"clamp(44px,7.5vw,92px)",fontWeight:900,lineHeight:1.03,letterSpacing:"-2.5px",maxWidth:880,marginBottom:26,animationDelay:"0.15s",opacity:0 }}>
-          Chega de perder<br/>
-          <span style={{ background:"linear-gradient(90deg,#1D6FFF 0%,#00D4FF 60%,#4F94FF 100%)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent" }}>
-            tempo em filas.
+        {/* Logo */}
+        <div className="up" style={{marginBottom:26,animationDelay:".1s",opacity:0}}>
+          <div style={{display:"inline-flex",alignItems:"center",gap:12,marginBottom:8}}>
+            <div style={{width:52,height:52,borderRadius:16,background:"linear-gradient(135deg,#8B3DFF,#00D4FF)",display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"Urbanist",fontWeight:900,fontSize:26,boxShadow:"0 0 40px rgba(0,212,255,.45),0 0 80px rgba(139,61,255,.25)"}}>F</div>
+            <span style={{fontFamily:"Urbanist",fontWeight:900,fontSize:34,letterSpacing:"-.5px"}}>Fila<span style={{background:"linear-gradient(90deg,#8B3DFF,#00D4FF)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}}>Zero</span></span>
+          </div>
+        </div>
+
+        <h1 className="up" style={{fontSize:"clamp(40px,7vw,90px)",fontWeight:900,lineHeight:1.04,letterSpacing:"-2.5px",maxWidth:820,marginBottom:22,animationDelay:".18s",opacity:0}}>
+          Seu tempo vale mais<br/>
+          <span style={{background:"linear-gradient(90deg,#8B3DFF 0%,#00D4FF 55%,#8B3DFF 100%)",backgroundSize:"200%",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",animation:"energyFlow 3s linear infinite",display:"inline-block"}}>
+            do que esperar.
           </span>
         </h1>
 
-        <p className="anim-up" style={{ fontSize:"clamp(16px,2.2vw,20px)",color:"var(--muted)",maxWidth:560,lineHeight:1.75,marginBottom:42,animationDelay:"0.28s",opacity:0,fontWeight:400 }}>
-          Entre na fila digitalmente, acompanhe sua posição em tempo real e seja chamado sem aglomeração.
+        <p className="up" style={{fontSize:"clamp(15px,2vw,19px)",color:"rgba(255,255,255,.5)",maxWidth:520,lineHeight:1.8,marginBottom:52,animationDelay:".3s",opacity:0}}>
+          Fila virtual inteligente em tempo real. Entre na fila de qualquer estabelecimento, acompanhe sua posição e chegue apenas quando sua vez estiver próxima.
         </p>
 
-        <div className="anim-up" style={{ display:"flex",gap:14,flexWrap:"wrap",justifyContent:"center",animationDelay:"0.42s",opacity:0 }}>
-          <button onClick={()=>setPage("fila")} className="btn-primary" style={{ padding:"17px 38px",fontSize:16,borderRadius:14 }}>
-            ⚡ Entrar na fila agora
-          </button>
-          <button onClick={()=>setPage("painel")} className="btn-secondary" style={{ padding:"17px 38px",fontSize:16,borderRadius:14 }}>
-            Ver demonstração →
+        {/* CTA */}
+        <div style={{position:"relative",marginBottom:72}}>
+          <div style={{position:"absolute",inset:-24,borderRadius:"50%",background:"rgba(0,212,255,.07)",animation:"ripple 2.5s ease-out infinite",pointerEvents:"none"}}/>
+          <div style={{position:"absolute",inset:-14,borderRadius:"50%",background:"rgba(139,61,255,.07)",animation:"ripple 2.5s .7s ease-out infinite",pointerEvents:"none"}}/>
+          <button onClick={()=>setPage("scan")} className="btn-neon" style={{position:"relative",zIndex:2,padding:"20px 60px",fontSize:18,borderRadius:18}}>
+            📲  Entrar na Fila
           </button>
         </div>
 
-        <div className="anim-up float" style={{ marginTop:64,width:"min(520px,95vw)",animationDelay:"0.6s",opacity:0 }}>
-          <LivePreview queue={queue}/>
+        {/* Phone mockup */}
+        <div className="up" style={{animationDelay:".6s",opacity:0,width:"min(280px,90vw)"}}>
+          <PhoneMockup queue={queue}/>
+        </div>
+
+        {/* Tipos */}
+        <div className="up" style={{marginTop:64,animationDelay:".75s",opacity:0,width:"100%",maxWidth:700}}>
+          <div style={{color:"var(--muted)",fontSize:11,fontWeight:700,letterSpacing:2.5,textTransform:"uppercase",marginBottom:18}}>Funciona em qualquer estabelecimento</div>
+          <div style={{display:"flex",flexWrap:"wrap",gap:8,justifyContent:"center"}}>
+            {LUGARES.map(l=>(
+              <div key={l.id} style={{padding:"9px 18px",borderRadius:100,fontSize:12,fontWeight:600,display:"flex",alignItems:"center",gap:7,background:"rgba(255,255,255,.04)",border:`1px solid ${l.cor}28`,transition:"all .2s",cursor:"default"}}>
+                <span>{l.icon}</span><span style={{color:"rgba(255,255,255,.6)"}}>{l.tipo}</span>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
-      {/* ── STATS ── */}
-      <section style={{ padding:"72px 24px",borderTop:"1px solid rgba(29,111,255,0.1)" }}>
-        <div style={{ maxWidth:960,margin:"0 auto",display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(200px,1fr))",gap:20 }}>
-          {[
-            {val:`+${c.a.toLocaleString("pt-BR")}`,label:"Atendimentos",icon:"👥"},
-            {val:`${c.r}%`,label:"Redução de espera",icon:"⚡"},
-            {val:`${c.s}%`,label:"Satisfação",icon:"⭐"},
-            {val:`+${c.e}`,label:"Empresas ativas",icon:"🏢"},
-          ].map((s,i)=>(
-            <div key={i} className="glass" style={{ padding:"30px 24px",borderRadius:22,textAlign:"center",border:"1px solid rgba(29,111,255,0.14)",transition:"all 0.3s" }}>
-              <div style={{ fontSize:30,marginBottom:10 }}>{s.icon}</div>
-              <div style={{ fontSize:42,fontWeight:900,fontFamily:"Urbanist",letterSpacing:"-1px",background:"linear-gradient(135deg,#fff,rgba(255,255,255,0.7))",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent" }}>{s.val}</div>
-              <div style={{ color:"var(--muted)",fontSize:14,marginTop:6,fontWeight:500 }}>{s.label}</div>
+      {/* ── COMO FUNCIONA ────────────────────────────────────────── */}
+      <section style={{padding:"100px 24px",borderTop:"1px solid rgba(0,212,255,.07)",position:"relative"}}>
+        {/* Section bg glow */}
+        <div style={{position:"absolute",top:"50%",left:"50%",transform:"translate(-50%,-50%)",width:800,height:400,background:"radial-gradient(ellipse,rgba(0,212,255,.06) 0%,rgba(139,61,255,.04) 50%,transparent 70%)",filter:"blur(60px)",pointerEvents:"none"}}/>
+
+        <div style={{maxWidth:980,margin:"0 auto",textAlign:"center",position:"relative"}}>
+          <div style={{color:"var(--cyan)",fontSize:11,fontWeight:800,letterSpacing:3,textTransform:"uppercase",marginBottom:14}}>Como Funciona</div>
+          <h2 style={{fontSize:"clamp(28px,4vw,48px)",fontWeight:900,marginBottom:10,letterSpacing:"-1.5px"}}>Simples, rápido e inteligente.</h2>
+          <p style={{color:"rgba(255,255,255,.4)",fontSize:15,marginBottom:64,fontWeight:500}}>Do QR Code à chamada em 4 passos.</p>
+
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(210px,1fr))",gap:0,position:"relative"}}>
+            {/* Energy beam connector */}
+            <div style={{position:"absolute",top:"38%",left:"10%",right:"10%",height:2,background:"linear-gradient(90deg,transparent 0%,rgba(0,212,255,.5) 15%,rgba(139,61,255,.6) 50%,rgba(0,212,255,.5) 85%,transparent 100%)",zIndex:0,animation:"beamFlow 3s ease-in-out infinite"}}/>
+            {/* Beam dots */}
+            {[25,50,75].map((p,i)=>(
+              <div key={i} style={{position:"absolute",top:"calc(38% - 5px)",left:`${p}%`,width:10,height:10,borderRadius:"50%",background:i%2===0?"var(--cyan)":"var(--purple)",boxShadow:i%2===0?"0 0 14px var(--cyan)":"0 0 14px var(--purple)",zIndex:1,animation:`blink ${1+i*.3}s infinite`}}/>
+            ))}
+
+            {[
+              {n:"1",icon:"📱",title:"Escanear QR Code",desc:"Aponte a câmera para o QR Code do estabelecimento. Reconhecimento instantâneo.",cor:"#00D4FF",bg:"rgba(0,212,255,.08)"},
+              {n:"2",icon:"👤",title:"Entrar na Fila Virtual",desc:"Informe seus dados e confirme presença. Menos de 10 segundos para entrar.",cor:"#8B3DFF",bg:"rgba(139,61,255,.08)"},
+              {n:"3",icon:"⏱",title:"Acompanhar em Tempo Real",desc:"Veja sua posição e tempo estimado atualizando ao vivo no seu celular.",cor:"#00D4FF",bg:"rgba(0,212,255,.08)"},
+              {n:"4",icon:"🔔",title:"Receber Notificação",desc:"Notificação automática quando sua vez está próxima. Chegue no momento certo.",cor:"#8B3DFF",bg:"rgba(139,61,255,.08)"},
+            ].map((s,i)=>(
+              <div key={i} className="glass step-card" style={{padding:"34px 24px",borderRadius:24,border:`1px solid ${s.cor}20`,position:"relative",overflow:"hidden",textAlign:"left",zIndex:2,margin:"0 8px",background:s.bg,backdropFilter:"blur(20px)"}}>
+                {/* Top glow accent */}
+                <div style={{position:"absolute",top:0,left:0,right:0,height:2.5,background:`linear-gradient(90deg,transparent,${s.cor},transparent)`}}/>
+                {/* Corner number */}
+                <div style={{position:"absolute",top:20,right:20,fontFamily:"Urbanist",fontWeight:900,fontSize:48,color:`${s.cor}12`,lineHeight:1}}>{s.n}</div>
+
+                <div style={{width:52,height:52,borderRadius:16,background:`${s.cor}15`,border:`1px solid ${s.cor}30`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:22,marginBottom:20,boxShadow:`0 0 20px ${s.cor}20`}}>{s.icon}</div>
+                <div style={{fontSize:10,color:s.cor,fontWeight:800,letterSpacing:2,marginBottom:10,textTransform:"uppercase"}}>{s.n}. Passo</div>
+                <h3 style={{fontSize:17,fontWeight:800,marginBottom:10,letterSpacing:"-.3px",lineHeight:1.3}}>{s.title}</h3>
+                <p style={{fontSize:13,color:"rgba(255,255,255,.45)",lineHeight:1.65,fontWeight:500}}>{s.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── STATS ────────────────────────────────────────────────── */}
+      <section style={{padding:"70px 24px",borderTop:"1px solid rgba(0,212,255,.07)",background:"rgba(0,212,255,.02)"}}>
+        <div style={{maxWidth:880,margin:"0 auto",display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(190px,1fr))",gap:20}}>
+          {[{v:`+${c.a.toLocaleString("pt-BR")}`,l:"Atendimentos",i:"👥",c:"#00D4FF"},{v:`${c.r}%`,l:"Redução de espera",i:"⚡",c:"#8B3DFF"},{v:`${c.s}%`,l:"Satisfação",i:"⭐",c:"#00F5A0"},{v:`+${c.e}`,l:"Empresas ativas",i:"🏢",c:"#FFB800"}].map((s,i)=>(
+            <div key={i} className="glass" style={{padding:"30px 24px",borderRadius:22,textAlign:"center",border:`1px solid ${s.c}20`,position:"relative",overflow:"hidden"}}>
+              <div style={{position:"absolute",bottom:-20,right:-10,width:80,height:80,borderRadius:"50%",background:`${s.c}12`,filter:"blur(20px)"}}/>
+              <div style={{fontSize:30,marginBottom:12,filter:`drop-shadow(0 0 8px ${s.c}80)`}}>{s.i}</div>
+              <div style={{fontSize:42,fontWeight:900,fontFamily:"Urbanist",letterSpacing:"-1.5px",color:s.c,textShadow:`0 0 30px ${s.c}50`}}>{s.v}</div>
+              <div style={{color:"rgba(255,255,255,.4)",fontSize:13,marginTop:8,fontWeight:500}}>{s.l}</div>
             </div>
           ))}
         </div>
       </section>
 
-      {/* ── HOW IT WORKS ── */}
-      <section style={{ padding:"72px 24px" }}>
-        <div style={{ maxWidth:860,margin:"0 auto",textAlign:"center" }}>
-          <div style={{ color:"var(--cyan)",fontSize:12,fontWeight:700,letterSpacing:2.5,textTransform:"uppercase",marginBottom:14 }}>Como funciona</div>
-          <h2 style={{ fontSize:"clamp(28px,4vw,46px)",fontWeight:900,marginBottom:56,letterSpacing:"-1.5px" }}>Simples como três passos</h2>
-          <div style={{ display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))",gap:20 }}>
-            {[
-              {n:"01",icon:"📱",title:"Escaneie o QR Code",desc:"Acesse a fila pelo seu celular, em qualquer lugar, sem instalar nada."},
-              {n:"02",icon:"✍️",title:"Entre na fila digital",desc:"Preencha seu nome e tipo de atendimento em poucos segundos."},
-              {n:"03",icon:"🔔",title:"Aguarde sua chamada",desc:"Receba alertas e acompanhe sua posição em tempo real."},
-            ].map((s,i)=>(
-              <div key={i} className="glass" style={{ padding:"36px 26px",borderRadius:22,border:"1px solid rgba(255,255,255,0.07)",position:"relative",overflow:"hidden" }}>
-                <div style={{ position:"absolute",top:14,right:18,fontSize:52,fontWeight:900,fontFamily:"Urbanist",color:"rgba(29,111,255,0.07)",lineHeight:1 }}>{s.n}</div>
-                <div style={{ fontSize:38,marginBottom:16 }}>{s.icon}</div>
-                <h3 style={{ fontSize:18,fontWeight:800,marginBottom:10,letterSpacing:"-0.3px" }}>{s.title}</h3>
-                <p style={{ color:"var(--muted)",fontSize:14,lineHeight:1.65 }}>{s.desc}</p>
-              </div>
-            ))}
-          </div>
+      {/* ── FOOTER ───────────────────────────────────────────────── */}
+      <footer style={{padding:"44px 24px",borderTop:"1px solid rgba(255,255,255,.05)",textAlign:"center"}}>
+        <div style={{fontFamily:"Urbanist",fontWeight:900,fontSize:24,marginBottom:10}}>
+          Fila<span style={{background:"linear-gradient(90deg,#8B3DFF,#00D4FF)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}}>Zero</span>
         </div>
-      </section>
-
-      {/* ── AI SECTION ── */}
-      <section style={{ padding:"72px 24px",background:"rgba(29,111,255,0.04)",borderTop:"1px solid rgba(29,111,255,0.1)" }}>
-        <div style={{ maxWidth:960,margin:"0 auto" }}>
-          <div style={{ textAlign:"center",marginBottom:52 }}>
-            <div style={{ display:"inline-flex",gap:8,alignItems:"center",background:"rgba(0,212,255,0.1)",borderRadius:100,padding:"7px 18px",border:"1px solid rgba(0,212,255,0.3)",marginBottom:16 }}>
-              <span style={{ fontSize:11,color:"var(--cyan)",fontWeight:800,letterSpacing:2,textTransform:"uppercase" }}>✦ ZeroFila AI</span>
-            </div>
-            <h2 style={{ fontSize:"clamp(24px,3.5vw,42px)",fontWeight:900,letterSpacing:"-1.5px" }}>
-              Inteligência que prevê,<br/>otimiza e encanta.
-            </h2>
-            <p style={{ color:"var(--muted)",marginTop:14,fontSize:16,maxWidth:500,margin:"14px auto 0",lineHeight:1.65 }}>
-              ZeroFila AI prevê o tempo médio de espera com precisão inteligente, adaptando o fluxo em tempo real.
-            </p>
-          </div>
-          <div style={{ display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(200px,1fr))",gap:16 }}>
-            {[
-              {icon:"🎯",title:"Previsão de tempo",desc:"Algoritmo aprende com padrões de atendimento histórico.",color:"#1D6FFF"},
-              {icon:"🔄",title:"Otimização de fluxo",desc:"Redistribui filas automaticamente para reduzir gargalos.",color:"#00D4FF"},
-              {icon:"📉",title:"Menos aglomeração",desc:"Pessoas esperam em qualquer lugar, não na porta.",color:"#00E583"},
-              {icon:"✨",title:"Experiência zero fila",desc:"Do físico ao digital em segundos. Zero fricção.",color:"#FFB800"},
-            ].map((card,i)=>(
-              <div key={i} className="glass-strong" style={{ padding:"28px 22px",borderRadius:20,border:`1px solid ${card.color}22` }}>
-                <div style={{ width:50,height:50,borderRadius:15,background:`${card.color}18`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:24,marginBottom:16,border:`1px solid ${card.color}30` }}>{card.icon}</div>
-                <h3 style={{ fontSize:16,fontWeight:800,marginBottom:8,letterSpacing:"-0.3px" }}>{card.title}</h3>
-                <p style={{ fontSize:13,color:"var(--muted)",lineHeight:1.6 }}>{card.desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── TESTIMONIALS ── */}
-      <section style={{ padding:"72px 24px" }}>
-        <div style={{ maxWidth:960,margin:"0 auto" }}>
-          <h2 style={{ textAlign:"center",fontSize:"clamp(24px,3vw,38px)",fontWeight:900,marginBottom:48,letterSpacing:"-1.5px" }}>Quem usa, não volta atrás</h2>
-          <div style={{ display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(220px,1fr))",gap:18 }}>
-            {testimonials.map((t,i)=>(
-              <div key={i} className="glass" style={{ padding:"28px",borderRadius:22,border:"1px solid rgba(255,255,255,0.07)" }}>
-                <div style={{ display:"flex",gap:3,marginBottom:14 }}>{Array(5).fill(0).map((_,j)=><span key={j} style={{ color:"#FFB800",fontSize:14 }}>★</span>)}</div>
-                <p style={{ color:"rgba(255,255,255,0.78)",fontSize:14,lineHeight:1.7,marginBottom:20 }}>"{t.text}"</p>
-                <div style={{ display:"flex",gap:12,alignItems:"center" }}>
-                  <div style={{ width:42,height:42,borderRadius:"50%",background:"linear-gradient(135deg,#1D6FFF,#00D4FF)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,fontWeight:800,flexShrink:0 }}>{t.av}</div>
-                  <div>
-                    <div style={{ fontSize:14,fontWeight:700 }}>{t.nome}</div>
-                    <div style={{ fontSize:12,color:"var(--muted)" }}>{t.cargo} · {t.empresa}</div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── QR CODE ── */}
-      <section style={{ padding:"80px 24px",background:"linear-gradient(180deg,rgba(29,111,255,0.07) 0%,transparent 100%)",borderTop:"1px solid rgba(29,111,255,0.1)" }}>
-        <div style={{ maxWidth:560,margin:"0 auto",textAlign:"center" }}>
-          <h2 style={{ fontSize:"clamp(24px,3vw,40px)",fontWeight:900,marginBottom:14,letterSpacing:"-1.5px" }}>Escaneie e entre<br/>na fila agora mesmo</h2>
-          <p style={{ color:"var(--muted)",marginBottom:40,fontSize:16 }}>Aponte a câmera do celular para o QR Code abaixo.</p>
-          <QRCode/>
-        </div>
-      </section>
-
-      {/* ── FOOTER ── */}
-      <footer style={{ padding:"48px 24px",borderTop:"1px solid rgba(29,111,255,0.1)" }}>
-        <div style={{ maxWidth:960,margin:"0 auto" }}>
-          <div style={{ display:"flex",justifyContent:"space-between",flexWrap:"wrap",gap:32,marginBottom:40 }}>
-            <div>
-              <div style={{ fontFamily:"Urbanist",fontWeight:900,fontSize:24,marginBottom:8 }}>Zero<span style={{ color:"var(--cyan)" }}>Fila</span></div>
-              <div style={{ color:"var(--muted)",fontSize:14,fontWeight:500 }}>Seu tempo vale mais.</div>
-              <div style={{ display:"flex",gap:10,marginTop:16 }}>
-                {["𝕏","in","ig","yt"].map(s=>(
-                  <div key={s} className="glass" style={{ width:36,height:36,borderRadius:10,display:"flex",alignItems:"center",justifyContent:"center",fontSize:13,cursor:"pointer",border:"1px solid rgba(29,111,255,0.18)" }}>{s}</div>
-                ))}
-              </div>
-            </div>
-            {[
-              {title:"Produto",links:["Funcionalidades","Preços","API","Integrações"]},
-              {title:"Empresa",links:["Sobre nós","Blog","Carreiras","Parceiros"]},
-              {title:"Legal",links:["LGPD","Privacidade","Termos de Uso","Cookies"]},
-            ].map((col,i)=>(
-              <div key={i}>
-                <div style={{ fontWeight:700,fontSize:14,marginBottom:16,fontFamily:"Urbanist" }}>{col.title}</div>
-                {col.links.map(l=><div key={l} style={{ color:"var(--muted)",fontSize:13,marginBottom:10,cursor:"pointer",fontWeight:500 }}>{l}</div>)}
-              </div>
-            ))}
-          </div>
-          <div style={{ borderTop:"1px solid rgba(255,255,255,0.05)",paddingTop:24,display:"flex",justifyContent:"space-between",flexWrap:"wrap",gap:12 }}>
-            <div style={{ color:"var(--muted)",fontSize:13 }}>© 2025 ZeroFila Tecnologia LTDA · Todos os direitos reservados.</div>
-            <div style={{ color:"var(--muted)",fontSize:13 }}>CNPJ 42.731.088/0001-XX · São Paulo, Brasil</div>
-          </div>
-        </div>
+        <div style={{color:"rgba(255,255,255,.3)",fontSize:13,marginBottom:18,fontWeight:500}}>Seu tempo vale mais do que esperar.</div>
+        <div style={{color:"rgba(255,255,255,.2)",fontSize:12}}>© 2025 FilaZero Tecnologia LTDA · CNPJ 42.731.088/0001-XX · São Paulo, Brasil</div>
       </footer>
     </div>
   );
 };
 
-// ─── FILA PAGE ─────────────────────────────────────────────────────────────────
-const FilaPage = ({ setPage }) => {
-  const { joinQueue, myTicket, queue, getMyPos } = useQueue();
-  const [step, setStep] = useState(myTicket ? 2 : 1);
-  const [form, setForm] = useState({ nome:"", tipo:TIPOS[0], prioridade:"normal" });
-  const [errors, setErrors] = useState({});
-  const [loading, setLoading] = useState(false);
+// ─── QR SCAN ──────────────────────────────────────────────────────────────────
+const QRScan=({setPage})=>{
+  const{setLugar}=useApp();
+  const[phase,setPhase]=useState("camera");
+  const[selected,setSelected]=useState(null);
+  const[scanning,setScanning]=useState(true);
 
-  const submit = () => {
-    const errs = {};
-    if (!form.nome.trim() || form.nome.trim().length < 3) errs.nome = "Nome deve ter ao menos 3 caracteres.";
-    if (Object.keys(errs).length > 0) { setErrors(errs); return; }
+  useEffect(()=>{
+    if(phase!=="camera")return;
+    const t=setTimeout(()=>{setScanning(false);setTimeout(()=>setPhase("detected"),500);},2800);
+    return()=>clearTimeout(t);
+  },[phase]);
+
+  const confirm=()=>{if(!selected)return;setLugar(selected);setPage("fila");};
+
+  return(
+    <div style={{minHeight:"100vh",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"90px 24px"}}>
+      {phase==="camera"&&(
+        <div className="in" style={{display:"flex",flexDirection:"column",alignItems:"center",gap:30,width:"100%",maxWidth:380,textAlign:"center"}}>
+          <div>
+            <h2 style={{fontFamily:"Urbanist",fontWeight:900,fontSize:28,marginBottom:8,letterSpacing:"-.5px"}}>Apontando câmera...</h2>
+            <p style={{color:"rgba(255,255,255,.45)",fontSize:15}}>Escaneie o QR Code do estabelecimento</p>
+          </div>
+          <div style={{position:"relative",width:280,height:280}}>
+            <div style={{position:"absolute",inset:-24,borderRadius:34,background:"radial-gradient(ellipse,rgba(0,212,255,.15) 0%,transparent 65%)",filter:"blur(20px)"}}/>
+            <div style={{width:"100%",height:"100%",borderRadius:28,overflow:"hidden",background:"linear-gradient(145deg,#060a18,#0a0e1e,#070c1a)",position:"relative",border:"1px solid rgba(0,212,255,.22)",boxShadow:"0 0 40px rgba(0,212,255,.08) inset"}}>
+              <div style={{position:"absolute",inset:0,opacity:.35}}>
+                <div style={{position:"absolute",top:"18%",left:"8%",width:80,height:80,borderRadius:12,background:"rgba(255,255,255,.025)"}}/>
+                <div style={{position:"absolute",bottom:"12%",right:"8%",width:60,height:80,borderRadius:8,background:"rgba(255,255,255,.025)"}}/>
+              </div>
+              <div style={{position:"absolute",top:"50%",left:"50%",transform:"translate(-50%,-50%)",width:140,height:140,background:"white",borderRadius:14,padding:8,display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:1.5,boxShadow:"0 0 30px rgba(255,255,255,.1)"}}>
+                {[1,1,1,0,1,1,1,1,0,1,0,1,0,1,1,1,1,0,1,1,1,0,0,0,0,0,0,0,1,1,1,0,1,1,1,1,0,1,0,1,0,1,1,1,1,0,1,1,1].map((v,i)=>(
+                  <div key={i} style={{borderRadius:1,background:v?"#060910":"transparent",aspectRatio:"1"}}/>
+                ))}
+              </div>
+              {scanning&&<div style={{position:"absolute",left:0,right:0,height:2.5,background:"linear-gradient(90deg,transparent 0%,var(--cyan) 25%,rgba(217,70,239,1) 75%,transparent 100%)",animation:"scanLine 1.4s ease-in-out infinite",top:0,boxShadow:"0 0 16px var(--cyan),0 0 30px rgba(217,70,239,.5)"}}/>}
+              {!scanning&&<div style={{position:"absolute",inset:0,background:"rgba(0,245,160,.06)",display:"flex",alignItems:"center",justifyContent:"center"}}><div style={{width:56,height:56,borderRadius:"50%",background:"rgba(0,245,160,.18)",border:"2px solid var(--green)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:24,boxShadow:"0 0 30px rgba(0,245,160,.3)"}}>✓</div></div>}
+            </div>
+            {[{top:0,left:0},{top:0,right:0},{bottom:0,left:0},{bottom:0,right:0}].map((pos,i)=>(
+              <div key={i} style={{position:"absolute",width:34,height:34,...pos,animation:"cornerBlink 1.5s ease-in-out infinite",animationDelay:`${i*.2}s`}}>
+                <div style={{position:"absolute",top:0,left:0,width:"100%",height:3,background:"var(--cyan)",borderRadius:2,boxShadow:"0 0 8px var(--cyan)"}}/>
+                <div style={{position:"absolute",top:0,left:0,width:3,height:"100%",background:"var(--cyan)",borderRadius:2,boxShadow:"0 0 8px var(--cyan)"}}/>
+              </div>
+            ))}
+          </div>
+          <div style={{display:"flex",alignItems:"center",gap:10,color:"rgba(255,255,255,.45)",fontSize:14,fontWeight:600}}>
+            <div style={{width:8,height:8,borderRadius:"50%",background:"var(--cyan)",animation:"blink 1s infinite",boxShadow:"0 0 8px var(--cyan)"}}/>
+            Buscando QR Code...
+          </div>
+        </div>
+      )}
+
+      {phase==="detected"&&(
+        <div className="in" style={{display:"flex",flexDirection:"column",alignItems:"center",gap:24,width:"100%",maxWidth:460,textAlign:"center"}}>
+          <div style={{width:72,height:72,borderRadius:"50%",background:"rgba(0,245,160,.1)",border:"2px solid var(--green)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:28,boxShadow:"0 0 40px rgba(0,245,160,.25)"}}>✓</div>
+          <div>
+            <h2 style={{fontFamily:"Urbanist",fontWeight:900,fontSize:28,marginBottom:6,letterSpacing:"-.5px"}}>QR Code detectado!</h2>
+            <p style={{color:"rgba(255,255,255,.45)",fontSize:14}}>Selecione o estabelecimento para entrar na fila</p>
+          </div>
+          <div style={{width:"100%",display:"flex",flexDirection:"column",gap:8,maxHeight:"45vh",overflowY:"auto",paddingRight:4}}>
+            {LUGARES.map(l=>(
+              <div key={l.id} onClick={()=>setSelected(l)} style={{padding:"15px 20px",borderRadius:18,cursor:"pointer",display:"flex",alignItems:"center",gap:14,background:selected?.id===l.id?`${l.cor}10`:"rgba(255,255,255,.03)",border:selected?.id===l.id?`1px solid ${l.cor}60`:"1px solid rgba(255,255,255,.07)",transition:"all .22s",boxShadow:selected?.id===l.id?`0 0 20px ${l.cor}15`:"none"}}>
+                <div style={{width:46,height:46,borderRadius:14,background:`${l.cor}15`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,flexShrink:0,border:`1px solid ${l.cor}28`}}>{l.icon}</div>
+                <div style={{flex:1,textAlign:"left"}}>
+                  <div style={{fontWeight:700,fontSize:15,fontFamily:"Urbanist"}}>{l.nome}</div>
+                  <div style={{fontSize:12,color:"rgba(255,255,255,.35)",marginTop:1}}>{l.tipo}</div>
+                </div>
+                {selected?.id===l.id&&<div style={{width:24,height:24,borderRadius:"50%",background:"var(--green)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700,boxShadow:"0 0 14px rgba(0,245,160,.4)"}}>✓</div>}
+              </div>
+            ))}
+          </div>
+          <button onClick={confirm} disabled={!selected} className="btn-neon" style={{width:"100%",padding:"17px",fontSize:16,borderRadius:16,opacity:selected?1:.3}}>
+            Confirmar e entrar na fila →
+          </button>
+          <button onClick={()=>setPage("home")} className="btn-outline" style={{width:"100%"}}>← Voltar</button>
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ─── FILA ─────────────────────────────────────────────────────────────────────
+const Fila=({setPage})=>{
+  const{joinQueue,myTicket,queue,getPos,lugar}=useApp();
+  const[step,setStep]=useState(myTicket?2:1);
+  const[form,setForm]=useState({nome:"",tipo:lugar?.tipos[0]||"",prioridade:"normal"});
+  const[err,setErr]=useState({});
+  const[loading,setLoading]=useState(false);
+  const tipos=lugar?.tipos||LUGARES[0].tipos;
+
+  const submit=()=>{
+    if(!form.nome.trim()||form.nome.trim().length<3){setErr({nome:"Mínimo 3 caracteres."});return;}
     setLoading(true);
-    setTimeout(() => { joinQueue(form.nome.trim(), form.tipo, form.prioridade); setLoading(false); setStep(2); }, 1300);
+    setTimeout(()=>{joinQueue(form.nome.trim(),form.tipo||tipos[0],form.prioridade);setLoading(false);setStep(2);},1200);
   };
 
-  const pos = getMyPos();
-  const myEntry = myTicket ? queue.find(q=>q.id===myTicket.id) : null;
-  const est = pos !== null ? Math.max(1, pos*4+rng(1,3)) : null;
+  const pos=getPos();
+  const me=myTicket?queue.find(q=>q.id===myTicket.id):null;
+  const est=pos!==null?Math.max(1,pos*4+rng(1,3)):null;
 
-  return (
-    <div style={{ minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",padding:"80px 20px" }}>
-      <div style={{ width:"100%",maxWidth:480 }}>
-        {step===1 && (
-          <div className="glass-strong anim-up" style={{ borderRadius:28,padding:"44px 40px",border:"1px solid rgba(29,111,255,0.25)" }}>
-            <div style={{ textAlign:"center",marginBottom:36 }}>
-              <div style={{ width:66,height:66,borderRadius:22,background:"linear-gradient(135deg,#1D6FFF,#00D4FF)",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 20px",fontSize:28,boxShadow:"0 8px 32px rgba(29,111,255,0.4)" }}>🎟</div>
-              <h2 style={{ fontFamily:"Urbanist",fontSize:28,fontWeight:900,marginBottom:8,letterSpacing:"-0.5px" }}>Entrar na Fila</h2>
-              <p style={{ color:"var(--muted)",fontSize:15 }}>Preencha os dados para pegar sua senha.</p>
+  return(
+    <div style={{minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",padding:"90px 20px"}}>
+      <div style={{width:"100%",maxWidth:500}}>
+        {step===1&&(
+          <div className="glass-dark up" style={{borderRadius:30,padding:"46px 40px",border:"1px solid rgba(0,212,255,.22)",boxShadow:"0 0 80px rgba(0,212,255,.08),0 0 140px rgba(139,61,255,.06)"}}>
+            <div style={{position:"absolute",top:0,left:0,right:0,height:2,background:"linear-gradient(90deg,transparent,var(--cyan),var(--purple),transparent)",borderRadius:"30px 30px 0 0"}}/>
+            {lugar&&(
+              <div style={{display:"flex",alignItems:"center",gap:13,padding:"14px 18px",borderRadius:16,background:`${lugar.cor}0d`,border:`1px solid ${lugar.cor}28`,marginBottom:30}}>
+                <div style={{width:44,height:44,borderRadius:13,background:`${lugar.cor}18`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,border:`1px solid ${lugar.cor}30`,boxShadow:`0 0 16px ${lugar.cor}20`}}>{lugar.icon}</div>
+                <div><div style={{fontWeight:700,fontSize:15,fontFamily:"Urbanist"}}>{lugar.nome}</div><div style={{fontSize:12,color:"rgba(255,255,255,.4)"}}>{lugar.tipo}</div></div>
+              </div>
+            )}
+            <div style={{textAlign:"center",marginBottom:32}}>
+              <h2 style={{fontFamily:"Urbanist",fontSize:28,fontWeight:900,marginBottom:7,letterSpacing:"-.5px"}}>Pegar sua senha</h2>
+              <p style={{color:"rgba(255,255,255,.4)",fontSize:14}}>Preencha para entrar na fila digital</p>
             </div>
-            <div style={{ display:"flex",flexDirection:"column",gap:18 }}>
+            <div style={{display:"flex",flexDirection:"column",gap:18}}>
               <div>
-                <label style={{ fontSize:13,fontWeight:700,display:"block",marginBottom:8,color:"rgba(255,255,255,0.75)",letterSpacing:"0.3px" }}>Seu nome completo</label>
-                <input type="text" placeholder="Ex: Maria Fernanda Santos" value={form.nome}
-                  onChange={e=>{setForm(f=>({...f,nome:e.target.value}));setErrors({});}}
-                  style={{ width:"100%",padding:"14px 16px",background:"rgba(255,255,255,0.045)",border:errors.nome?"1px solid var(--red)":"1px solid rgba(29,111,255,0.2)",borderRadius:12,color:"white",fontSize:15,transition:"all 0.2s" }}/>
-                {errors.nome&&<div style={{ color:"var(--red)",fontSize:12,marginTop:6,fontWeight:600 }}>{errors.nome}</div>}
+                <label style={{fontSize:13,fontWeight:600,display:"block",marginBottom:9,color:"rgba(255,255,255,.6)"}}>Seu nome</label>
+                <input type="text" placeholder="Ex: João Pedro Silva" value={form.nome} onChange={e=>{setForm(f=>({...f,nome:e.target.value}));setErr({});}}
+                  style={{width:"100%",padding:"15px 18px",background:"rgba(255,255,255,.05)",border:err.nome?"1px solid var(--red)":"1px solid rgba(255,255,255,.1)",borderRadius:14,color:"white",fontSize:15,transition:"all .2s"}}/>
+                {err.nome&&<div style={{color:"var(--red)",fontSize:12,marginTop:6,fontWeight:600}}>{err.nome}</div>}
               </div>
               <div>
-                <label style={{ fontSize:13,fontWeight:700,display:"block",marginBottom:8,color:"rgba(255,255,255,0.75)" }}>Tipo de atendimento</label>
+                <label style={{fontSize:13,fontWeight:600,display:"block",marginBottom:9,color:"rgba(255,255,255,.6)"}}>Tipo de atendimento</label>
                 <select value={form.tipo} onChange={e=>setForm(f=>({...f,tipo:e.target.value}))}
-                  style={{ width:"100%",padding:"14px 16px",background:"rgba(255,255,255,0.045)",border:"1px solid rgba(29,111,255,0.2)",borderRadius:12,color:"white",fontSize:15 }}>
-                  {TIPOS.map(t=><option key={t} value={t} style={{ background:"#0C1426" }}>{t}</option>)}
+                  style={{width:"100%",padding:"15px 18px",background:"rgba(255,255,255,.05)",border:"1px solid rgba(255,255,255,.1)",borderRadius:14,fontSize:15}}>
+                  {tipos.map(t=><option key={t} value={t}>{t}</option>)}
                 </select>
               </div>
               <div>
-                <label style={{ fontSize:13,fontWeight:700,display:"block",marginBottom:10,color:"rgba(255,255,255,0.75)" }}>Prioridade</label>
-                <div style={{ display:"flex",gap:10 }}>
+                <label style={{fontSize:13,fontWeight:600,display:"block",marginBottom:11,color:"rgba(255,255,255,.6)"}}>Prioridade</label>
+                <div style={{display:"flex",gap:10}}>
                   {["normal","preferencial"].map(p=>(
-                    <div key={p} onClick={()=>setForm(f=>({...f,prioridade:p}))} style={{
-                      flex:1,padding:"12px 16px",borderRadius:12,cursor:"pointer",textAlign:"center",
-                      border:form.prioridade===p?"1px solid rgba(29,111,255,0.55)":"1px solid rgba(255,255,255,0.07)",
-                      background:form.prioridade===p?"rgba(29,111,255,0.18)":"rgba(255,255,255,0.03)",
-                      fontSize:14,fontWeight:700,fontFamily:"Urbanist",transition:"all 0.22s",
-                      color:form.prioridade===p?"var(--blue-light)":"var(--muted)",
-                    }}>
+                    <div key={p} onClick={()=>setForm(f=>({...f,prioridade:p}))} style={{flex:1,padding:"14px",borderRadius:14,cursor:"pointer",textAlign:"center",border:form.prioridade===p?"1px solid rgba(0,212,255,.5)":"1px solid rgba(255,255,255,.07)",background:form.prioridade===p?"rgba(0,212,255,.1)":"rgba(255,255,255,.03)",fontSize:14,fontWeight:700,fontFamily:"Urbanist",transition:"all .22s",color:form.prioridade===p?"var(--cyan)":"rgba(255,255,255,.4)",boxShadow:form.prioridade===p?"0 0 20px rgba(0,212,255,.15)":"none"}}>
                       {p==="normal"?"Normal":"⭐ Preferencial"}
                     </div>
                   ))}
                 </div>
               </div>
-              <button onClick={submit} disabled={loading} className="btn-primary" style={{ width:"100%",padding:"16px",fontSize:16,borderRadius:14,marginTop:8,opacity:loading?0.8:1 }}>
-                {loading
-                  ? <span style={{ display:"flex",alignItems:"center",justifyContent:"center",gap:10 }}><div style={{ width:18,height:18,border:"2px solid rgba(255,255,255,0.3)",borderTopColor:"white",borderRadius:"50%",animation:"spin 0.8s linear infinite" }}/>Entrando...</span>
-                  : "Pegar minha senha →"}
+              <button onClick={submit} disabled={loading} className="btn-neon" style={{width:"100%",padding:"17px",fontSize:16,borderRadius:16,marginTop:6,opacity:loading?.8:1}}>
+                {loading?<span style={{display:"flex",alignItems:"center",justifyContent:"center",gap:10}}><div style={{width:18,height:18,border:"2px solid rgba(255,255,255,.3)",borderTopColor:"white",borderRadius:"50%",animation:"spin .8s linear infinite"}}/>Entrando...</span>:"Pegar minha senha →"}
               </button>
             </div>
           </div>
         )}
 
-        {step===2 && myTicket && (
-          <div className="anim-in" style={{ display:"flex",flexDirection:"column",gap:18 }}>
-            {/* Ticket */}
-            <div className="glass-strong" style={{ borderRadius:28,padding:"36px",border:"1px solid rgba(29,111,255,0.4)",textAlign:"center",boxShadow:"0 24px 64px rgba(29,111,255,0.2)" }}>
-              <div style={{ color:"var(--muted)",fontSize:12,fontWeight:700,letterSpacing:2.5,textTransform:"uppercase",marginBottom:12 }}>Sua senha</div>
-              <div style={{ fontSize:74,fontWeight:900,fontFamily:"Urbanist",letterSpacing:-2,background:"linear-gradient(135deg,#1D6FFF,#00D4FF)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",animation:"callAnim 3s ease-in-out infinite" }}>
+        {step===2&&myTicket&&(
+          <div className="in" style={{display:"flex",flexDirection:"column",gap:14}}>
+            {/* Ticket principal */}
+            <div className="glass-dark" style={{borderRadius:30,padding:"38px",border:"1px solid rgba(0,212,255,.28)",textAlign:"center",boxShadow:"0 0 80px rgba(0,212,255,.14),0 0 140px rgba(139,61,255,.1)",position:"relative",overflow:"hidden"}}>
+              <div style={{position:"absolute",top:0,left:0,right:0,height:2.5,background:"linear-gradient(90deg,transparent,var(--cyan),var(--purple),transparent)"}}/>
+              {/* Big glow behind ticket number */}
+              <div style={{position:"absolute",top:"30%",left:"50%",transform:"translate(-50%,-50%)",width:200,height:200,borderRadius:"50%",background:"radial-gradient(circle,rgba(0,212,255,.12) 0%,transparent 70%)",filter:"blur(30px)",pointerEvents:"none"}}/>
+
+              {lugar&&<div style={{fontSize:12,color:"rgba(255,255,255,.4)",fontWeight:600,marginBottom:10}}>{lugar.icon} {lugar.nome}</div>}
+              <div style={{color:"rgba(255,255,255,.4)",fontSize:10,fontWeight:800,letterSpacing:3.5,textTransform:"uppercase",marginBottom:12}}>Sua senha</div>
+              <div style={{fontSize:86,fontWeight:900,fontFamily:"Urbanist",letterSpacing:-2,background:"linear-gradient(135deg,#8B3DFF,#00D4FF)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",animation:"callPulse 3s ease-in-out infinite",lineHeight:1,filter:"drop-shadow(0 0 30px rgba(0,212,255,.4))"}}>
                 {myTicket.ticket}
               </div>
-              {myEntry?.prioridade==="preferencial"&&(
-                <div style={{ display:"inline-block",background:"rgba(255,184,0,0.12)",border:"1px solid rgba(255,184,0,0.3)",color:"#FFB800",borderRadius:8,padding:"4px 14px",fontSize:12,fontWeight:700,marginTop:8 }}>⭐ Atendimento Preferencial</div>
-              )}
-              <div style={{ marginTop:22,paddingTop:22,borderTop:"1px solid rgba(255,255,255,0.07)",display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:16 }}>
-                {[{label:"Posição",val:pos!==null?`${pos+1}°`:"—"},{label:"À frente",val:pos!==null?pos:"—"},{label:"Estimado",val:est?`~${est}min`:"—"}].map((s,i)=>(
-                  <div key={i}>
-                    <div style={{ fontSize:24,fontWeight:900,fontFamily:"Urbanist" }}>{s.val}</div>
-                    <div style={{ fontSize:11,color:"var(--muted)",marginTop:3,fontWeight:500 }}>{s.label}</div>
-                  </div>
+              {me?.prioridade==="preferencial"&&<div style={{display:"inline-block",background:"rgba(255,184,0,.1)",border:"1px solid rgba(255,184,0,.3)",color:"var(--amber)",borderRadius:9,padding:"4px 16px",fontSize:11,fontWeight:700,marginTop:12,boxShadow:"0 0 16px rgba(255,184,0,.15)"}}>⭐ Atendimento Preferencial</div>}
+              <div style={{marginTop:24,paddingTop:20,borderTop:"1px solid rgba(255,255,255,.06)",display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:14}}>
+                {[{l:"Posição",v:pos!==null?`${pos+1}°`:"—",c:"var(--cyan)"},{l:"À frente",v:pos!==null?pos:"—",c:"var(--purple)"},{l:"Estimado",v:est?`~${est}min`:"—",c:"white"}].map((s,i)=>(
+                  <div key={i}><div style={{fontSize:28,fontWeight:900,fontFamily:"Urbanist",color:s.c,textShadow:`0 0 20px ${s.c}60`}}>{s.v}</div><div style={{fontSize:11,color:"rgba(255,255,255,.35)",marginTop:4,fontWeight:600}}>{s.l}</div></div>
                 ))}
               </div>
             </div>
 
             {/* Progress */}
-            <div className="glass" style={{ borderRadius:20,padding:"24px",border:"1px solid rgba(29,111,255,0.15)" }}>
-              <div style={{ display:"flex",justifyContent:"space-between",marginBottom:12 }}>
-                <span style={{ fontSize:13,fontWeight:700 }}>Progresso da fila</span>
-                <Badge status={myEntry?.status||"aguardando"}/>
-              </div>
-              <div style={{ background:"rgba(255,255,255,0.06)",borderRadius:100,height:8,overflow:"hidden" }}>
-                <div style={{ height:"100%",borderRadius:100,background:"linear-gradient(90deg,#1D6FFF,#00D4FF)",width:pos!==null?`${Math.max(10,100-(pos/queue.length)*100)}%`:"10%",transition:"width 1.5s ease",boxShadow:"0 0 14px rgba(29,111,255,0.7)" }}/>
+            <div className="glass" style={{borderRadius:20,padding:"20px 22px",border:"1px solid rgba(255,255,255,.07)"}}>
+              <div style={{display:"flex",justifyContent:"space-between",marginBottom:12}}><span style={{fontSize:13,fontWeight:700}}>Progresso na fila</span><Badge status={me?.status||"aguardando"}/></div>
+              <div style={{background:"rgba(255,255,255,.05)",borderRadius:100,height:7,overflow:"hidden"}}>
+                <div style={{height:"100%",borderRadius:100,background:"linear-gradient(90deg,#8B3DFF,#00D4FF)",width:pos!==null?`${Math.max(10,100-(pos/queue.length)*100)}%`:"10%",transition:"width 1.5s ease",boxShadow:"0 0 14px rgba(0,212,255,.7)"}}/>
               </div>
             </div>
 
-            {/* Queue live */}
-            <div className="glass" style={{ borderRadius:20,padding:"24px",border:"1px solid rgba(29,111,255,0.12)" }}>
-              <div style={{ fontSize:13,fontWeight:700,marginBottom:14,display:"flex",alignItems:"center",gap:8 }}>
-                <div style={{ width:7,height:7,borderRadius:"50%",background:"var(--green)",animation:"blink 1.2s infinite" }}/>
+            {/* Live queue */}
+            <div className="glass" style={{borderRadius:20,padding:"20px 22px",border:"1px solid rgba(255,255,255,.07)"}}>
+              <div style={{fontSize:13,fontWeight:700,marginBottom:14,display:"flex",alignItems:"center",gap:9}}>
+                <div style={{width:7,height:7,borderRadius:"50%",background:"var(--green)",animation:"blink 1.2s infinite",boxShadow:"0 0 8px var(--green)"}}/>
                 Fila ao vivo · {queue.length} pessoas
               </div>
-              <div style={{ display:"flex",flexDirection:"column",gap:7,maxHeight:240,overflowY:"auto" }}>
-                {queue.slice(0,8).map((p,i)=>(
-                  <div key={p.id} style={{
-                    display:"flex",gap:10,alignItems:"center",padding:"10px 12px",borderRadius:10,
-                    background:p.id===myTicket.id?"rgba(29,111,255,0.15)":"rgba(255,255,255,0.025)",
-                    border:p.id===myTicket.id?"1px solid rgba(29,111,255,0.4)":"1px solid transparent",
-                    fontSize:13,transition:"all 0.45s",
-                  }}>
-                    <span style={{ color:"var(--muted)",fontWeight:800,minWidth:22 }}>{i+1}</span>
-                    <span style={{ fontFamily:"Urbanist",fontWeight:800,color:p.id===myTicket.id?"var(--cyan)":"rgba(255,255,255,0.65)",minWidth:78 }}>{p.ticket}</span>
-                    <span style={{ flex:1,fontSize:12,color:"var(--muted)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap" }}>{p.nome.split(" ")[0]}</span>
+              <div style={{display:"flex",flexDirection:"column",gap:6,maxHeight:230,overflowY:"auto"}}>
+                {queue.slice(0,7).map((p,i)=>(
+                  <div key={p.id} style={{display:"flex",gap:10,alignItems:"center",padding:"10px 13px",borderRadius:12,background:p.id===myTicket.id?"rgba(0,212,255,.08)":"rgba(255,255,255,.02)",border:p.id===myTicket.id?"1px solid rgba(0,212,255,.35)":"1px solid transparent",fontSize:13,transition:"all .4s",boxShadow:p.id===myTicket.id?"0 0 20px rgba(0,212,255,.1)":"none"}}>
+                    <span style={{color:"rgba(255,255,255,.3)",fontWeight:800,minWidth:22,fontSize:12}}>{i+1}</span>
+                    <span style={{fontFamily:"Urbanist",fontWeight:800,color:p.id===myTicket.id?"var(--cyan)":"rgba(255,255,255,.55)",minWidth:76}}>{p.ticket}</span>
+                    <span style={{flex:1,fontSize:12,color:"rgba(255,255,255,.35)",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.nome.split(" ")[0]}</span>
                     <Badge status={p.status} small/>
                   </div>
                 ))}
               </div>
             </div>
-            <button onClick={()=>setPage("painel")} className="btn-secondary" style={{ borderRadius:14 }}>Ver painel de chamadas →</button>
+            <button onClick={()=>setPage("painel")} className="btn-outline" style={{borderRadius:16,width:"100%",padding:"14px"}}>Ver painel de chamadas →</button>
           </div>
         )}
       </div>
@@ -747,103 +672,83 @@ const FilaPage = ({ setPage }) => {
   );
 };
 
-// ─── PAINEL ────────────────────────────────────────────────────────────────────
-const Painel = () => {
-  const { queue, called, stats } = useQueue();
-  const [time, setTime] = useState(new Date());
-  const [flash, setFlash] = useState(false);
-  useEffect(()=>{ const t=setInterval(()=>setTime(new Date()),1000); return()=>clearInterval(t); },[]);
-  useEffect(()=>{ if(called){setFlash(true);setTimeout(()=>setFlash(false),2200);} },[called]);
+// ─── PAINEL ───────────────────────────────────────────────────────────────────
+const Painel=()=>{
+  const{queue,stats}=useApp();
+  const[time,setTime]=useState(new Date());
+  const[flash,setFlash]=useState(false);
+  const prevEm=useRef(null);
+  useEffect(()=>{const t=setInterval(()=>setTime(new Date()),1000);return()=>clearInterval(t);},[]);
+  useEffect(()=>{
+    const em=queue.find(x=>x.status==="em_atendimento");
+    if(em&&em.id!==prevEm.current){prevEm.current=em.id;setFlash(true);setTimeout(()=>setFlash(false),2500);}
+  },[queue]);
 
-  const em = queue.find(x=>x.status==="em_atendimento");
-  const proximos = queue.filter(x=>x.status!=="em_atendimento").slice(0,3);
+  const em=queue.find(x=>x.status==="em_atendimento");
+  const prox=queue.filter(x=>x.status!=="em_atendimento").slice(0,3);
 
-  return (
-    <div style={{ minHeight:"100vh",padding:"80px 24px 32px",background:flash?"rgba(29,111,255,0.04)":"transparent",transition:"background 0.5s" }}>
-      <div style={{ maxWidth:1100,margin:"0 auto" }}>
-        {/* Header */}
-        <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:32 }}>
-          <div>
-            <div style={{ fontFamily:"Urbanist",fontWeight:900,fontSize:30,letterSpacing:"-1px" }}>
-              Zero<span style={{ color:"var(--cyan)" }}>Fila</span>
-              <span style={{ fontSize:14,fontWeight:500,color:"var(--muted)",marginLeft:12,letterSpacing:0 }}>Painel de Atendimento</span>
-            </div>
+  return(
+    <div style={{minHeight:"100vh",padding:"88px 24px 36px",background:flash?"rgba(0,212,255,.02)":"transparent",transition:"background .5s"}}>
+      <div style={{maxWidth:1100,margin:"0 auto"}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:30}}>
+          <div style={{fontFamily:"Urbanist",fontWeight:900,fontSize:30,letterSpacing:"-.5px"}}>
+            Fila<span style={{background:"linear-gradient(90deg,#8B3DFF,#00D4FF)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}}>Zero</span>
+            <span style={{fontSize:14,fontWeight:500,color:"rgba(255,255,255,.35)",marginLeft:14}}>Painel de Atendimento</span>
           </div>
-          <div style={{ textAlign:"right" }}>
-            <div style={{ fontFamily:"Urbanist",fontWeight:900,fontSize:34,letterSpacing:"-1.5px" }}>
-              {time.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit",second:"2-digit"})}
-            </div>
-            <div style={{ color:"var(--muted)",fontSize:13,marginTop:2,fontWeight:500 }}>
-              {time.toLocaleDateString("pt-BR",{weekday:"long",day:"numeric",month:"long"})}
-            </div>
+          <div style={{textAlign:"right"}}>
+            <div style={{fontFamily:"Urbanist",fontWeight:900,fontSize:36,letterSpacing:"-1.5px"}}>{time.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit",second:"2-digit"})}</div>
+            <div style={{color:"rgba(255,255,255,.35)",fontSize:13}}>{time.toLocaleDateString("pt-BR",{weekday:"long",day:"numeric",month:"long"})}</div>
           </div>
         </div>
 
         {/* Main ticket */}
-        <div className="glass-strong" style={{
-          borderRadius:28,padding:"52px 44px",textAlign:"center",marginBottom:24,
-          border:flash?"1px solid rgba(0,212,255,0.7)":"1px solid rgba(29,111,255,0.3)",
-          boxShadow:flash?"0 0 80px rgba(29,111,255,0.3)":"none",
-          transition:"all 0.5s",position:"relative",overflow:"hidden",
-          animation:flash?"borderGlow 0.5s ease":"none",
-        }}>
-          <div style={{ color:"var(--muted)",fontSize:12,fontWeight:800,letterSpacing:3,textTransform:"uppercase",marginBottom:18 }}>▶ Senha em Atendimento</div>
-          <div style={{
-            fontSize:"clamp(88px,14vw,148px)",fontWeight:900,fontFamily:"Urbanist",letterSpacing:-4,
-            background:"linear-gradient(135deg,#1D6FFF 0%,#00D4FF 100%)",
-            WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",
-            lineHeight:1,animation:flash?"callAnim 0.5s ease":"none",
-          }}>{em?.ticket||"—"}</div>
-          {em&&(
-            <div style={{ marginTop:18 }}>
-              <div style={{ fontSize:26,fontWeight:700,fontFamily:"Urbanist" }}>{em.nome}</div>
-              <div style={{ color:"var(--muted)",fontSize:15,marginTop:5,fontWeight:500 }}>{em.tipo}</div>
-              <div style={{ display:"inline-block",marginTop:14,background:"rgba(29,111,255,0.18)",border:"1px solid rgba(29,111,255,0.5)",color:"var(--blue-light)",borderRadius:12,padding:"9px 22px",fontSize:17,fontWeight:800,fontFamily:"Urbanist",letterSpacing:"-0.5px" }}>{em.guiche}</div>
-            </div>
-          )}
-          {/* waveform */}
-          <div style={{ display:"flex",gap:4,justifyContent:"center",marginTop:30,alignItems:"flex-end",height:30 }}>
-            {Array.from({length:14}).map((_,i)=>(
-              <div key={i} style={{ width:4,borderRadius:2,background:`rgba(29,111,255,${0.25+Math.random()*0.75})`,animation:`waveform ${(0.45+Math.random()*0.9).toFixed(2)}s ${(Math.random()*0.5).toFixed(2)}s ease-in-out infinite` }}/>
-            ))}
+        <div className="glass-dark" style={{borderRadius:30,padding:"56px 48px",textAlign:"center",marginBottom:22,border:flash?"1px solid rgba(0,212,255,.8)":"1px solid rgba(0,212,255,.22)",boxShadow:flash?"0 0 100px rgba(0,212,255,.3),0 0 200px rgba(139,61,255,.18)":"0 0 50px rgba(0,212,255,.07)",transition:"all .5s",position:"relative",overflow:"hidden"}}>
+          <div style={{position:"absolute",top:0,left:0,right:0,height:2.5,background:"linear-gradient(90deg,transparent,var(--cyan),var(--purple),transparent)"}}/>
+          {/* Background glow */}
+          <div style={{position:"absolute",top:"50%",left:"50%",transform:"translate(-50%,-50%)",width:400,height:300,borderRadius:"50%",background:"radial-gradient(circle,rgba(0,212,255,.08) 0%,transparent 70%)",filter:"blur(40px)",pointerEvents:"none"}}/>
+
+          <div style={{color:"rgba(255,255,255,.35)",fontSize:11,fontWeight:800,letterSpacing:4,textTransform:"uppercase",marginBottom:20}}>▶  Senha em Atendimento</div>
+          <div style={{fontSize:"clamp(90px,14vw,160px)",fontWeight:900,fontFamily:"Urbanist",letterSpacing:-4,background:"linear-gradient(135deg,#8B3DFF 0%,#00D4FF 100%)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent",lineHeight:1,animation:flash?"callPulse .6s ease":"none",filter:"drop-shadow(0 0 40px rgba(0,212,255,.4))"}}>
+            {em?.ticket||"—"}
+          </div>
+          {em&&<>
+            <div style={{fontSize:28,fontWeight:700,fontFamily:"Urbanist",marginTop:18}}>{em.nome}</div>
+            <div style={{color:"rgba(255,255,255,.4)",fontSize:15,marginTop:5}}>{em.tipo}</div>
+            <div style={{display:"inline-block",marginTop:16,background:"rgba(0,212,255,.08)",border:"1px solid rgba(0,212,255,.45)",color:"var(--cyan)",borderRadius:14,padding:"10px 28px",fontSize:18,fontWeight:800,fontFamily:"Urbanist",boxShadow:"0 0 24px rgba(0,212,255,.2)"}}>{em.guiche}</div>
+          </>}
+          <div style={{display:"flex",gap:5,justifyContent:"center",marginTop:30,alignItems:"flex-end",height:32}}>
+            {[.9,.5,.7,.3,.8,.6,1,.4,.7,.5,.9,.3,.6,.8,.4,.7].map((op,i)=><div key={i} style={{width:5,borderRadius:3,background:`rgba(${i%2===0?"0,212,255":"139,61,255"},${op})`,animation:`wave ${[.7,.5,.9,.6,.8,.55,.75,.65,.85,.5,.7,.9,.6,.8,.55,.75][i]}s ${[0,.2,.1,.3,0,.15,.25,.05,.2,.1,.3,0,.15,.25,.05,.2][i]}s ease-in-out infinite`,boxShadow:i%2===0?"0 0 6px rgba(0,212,255,.4)":"0 0 6px rgba(139,61,255,.4)"}}/>)}
           </div>
         </div>
 
-        {/* Proximos */}
-        <div style={{ display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:16,marginBottom:20 }}>
-          {proximos.map((p,i)=>(
-            <div key={p.id} className="glass" style={{ borderRadius:20,padding:"24px 22px",border:i===0?"1px solid rgba(0,212,255,0.35)":"1px solid rgba(255,255,255,0.07)" }}>
-              <div style={{ color:"var(--muted)",fontSize:11,fontWeight:800,letterSpacing:2,textTransform:"uppercase",marginBottom:8 }}>{i===0?"Próximo":`${i+1}°`}</div>
-              <div style={{ fontFamily:"Urbanist",fontWeight:900,fontSize:34,letterSpacing:-1,color:i===0?"var(--cyan)":"rgba(255,255,255,0.55)" }}>{p.ticket}</div>
-              <div style={{ fontSize:13,marginTop:5,color:"rgba(255,255,255,0.7)",fontWeight:600 }}>{p.nome.split(" ")[0]}</div>
+        {/* Next up */}
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:14,marginBottom:20}}>
+          {prox.map((p,i)=>(
+            <div key={p.id} className="glass" style={{borderRadius:20,padding:"24px 22px",border:i===0?"1px solid rgba(139,61,255,.45)":"1px solid rgba(255,255,255,.07)",boxShadow:i===0?"0 0 30px rgba(139,61,255,.12)":"none"}}>
+              <div style={{color:"rgba(255,255,255,.35)",fontSize:10,fontWeight:800,letterSpacing:2.5,textTransform:"uppercase",marginBottom:7}}>{i===0?"Próximo":`${i+1}°`}</div>
+              <div style={{fontFamily:"Urbanist",fontWeight:900,fontSize:38,letterSpacing:-1.5,background:i===0?"linear-gradient(135deg,#8B3DFF,#00D4FF)":"none",WebkitBackgroundClip:i===0?"text":"unset",WebkitTextFillColor:i===0?"transparent":"rgba(255,255,255,.45)",filter:i===0?"drop-shadow(0 0 20px rgba(0,212,255,.3))":"none"}}>{p.ticket}</div>
+              <div style={{fontSize:13,marginTop:6,color:"rgba(255,255,255,.5)",fontWeight:600}}>{p.nome.split(" ")[0]}</div>
             </div>
           ))}
         </div>
 
         {/* Stats */}
-        <div style={{ display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(155px,1fr))",gap:14,marginBottom:20 }}>
-          {[
-            {label:"Na fila",val:queue.length,icon:"👥",color:"var(--blue-light)"},
-            {label:"Atendidos hoje",val:stats.hoje,icon:"✅",color:"var(--green)"},
-            {label:"Tempo médio",val:`${stats.tempo_medio.toFixed(1)}min`,icon:"⏱",color:"var(--cyan)"},
-            {label:"Satisfação",val:`${stats.satisfacao}%`,icon:"⭐",color:"#FFB800"},
-            {label:"Total geral",val:stats.total.toLocaleString("pt-BR"),icon:"📊",color:"var(--muted)"},
-          ].map((s,i)=>(
-            <div key={i} className="glass" style={{ borderRadius:16,padding:"18px 16px",border:"1px solid rgba(29,111,255,0.1)" }}>
-              <div style={{ fontSize:22,marginBottom:8 }}>{s.icon}</div>
-              <div style={{ fontFamily:"Urbanist",fontWeight:900,fontSize:26,color:s.color }}>{s.val}</div>
-              <div style={{ fontSize:12,color:"var(--muted)",marginTop:3,fontWeight:500 }}>{s.label}</div>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(155px,1fr))",gap:12,marginBottom:20}}>
+          {[{l:"Na fila",v:queue.length,c:"var(--cyan)"},{l:"Hoje",v:stats.hoje,c:"var(--green)"},{l:"Tempo médio",v:`${stats.tempo.toFixed(1)}min`,c:"var(--purple)"},{l:"Satisfação",v:`${stats.satisf}%`,c:"var(--amber)"},{l:"Total",v:stats.total.toLocaleString("pt-BR"),c:"rgba(255,255,255,.4)"}].map((s,i)=>(
+            <div key={i} className="glass" style={{borderRadius:16,padding:"18px",border:"1px solid rgba(255,255,255,.06)"}}>
+              <div style={{fontFamily:"Urbanist",fontWeight:900,fontSize:26,color:s.c,textShadow:`0 0 20px ${s.c}50`}}>{s.v}</div>
+              <div style={{fontSize:12,color:"rgba(255,255,255,.35)",marginTop:4,fontWeight:600}}>{s.l}</div>
             </div>
           ))}
         </div>
 
         {/* Ticker */}
-        <div style={{ overflow:"hidden",background:"rgba(29,111,255,0.06)",border:"1px solid rgba(29,111,255,0.15)",borderRadius:12,padding:"12px 0" }}>
-          <div style={{ display:"flex",animation:"ticker 28s linear infinite",gap:48,whiteSpace:"nowrap" }}>
+        <div style={{overflow:"hidden",background:"rgba(0,212,255,.03)",border:"1px solid rgba(0,212,255,.1)",borderRadius:12,padding:"12px 0"}}>
+          <div style={{display:"flex",animation:"ticker 28s linear infinite",gap:52,whiteSpace:"nowrap"}}>
             {[...queue,...queue].map((p,i)=>(
-              <span key={i} style={{ fontSize:13,color:"var(--muted)",padding:"0 4px",fontWeight:500 }}>
-                <span style={{ color:"var(--cyan)",fontWeight:800 }}>{p.ticket}</span> · {p.nome.split(" ")[0]} · {p.tipo}
-                <span style={{ color:"rgba(29,111,255,0.4)",margin:"0 16px" }}>◆</span>
+              <span key={i} style={{fontSize:13,color:"rgba(255,255,255,.35)",fontWeight:500}}>
+                <span style={{color:"var(--cyan)",fontWeight:800}}>{p.ticket}</span> · {p.nome.split(" ")[0]} · {p.tipo}
+                <span style={{color:"rgba(0,212,255,.2)",margin:"0 18px"}}>◆</span>
               </span>
             ))}
           </div>
@@ -854,123 +759,68 @@ const Painel = () => {
 };
 
 // ─── ADMIN ────────────────────────────────────────────────────────────────────
-const Admin = () => {
-  const { queue, stats, history } = useQueue();
-  const hourly = Array.from({length:12},(_,i)=>({ hora:`${8+i}h`, atend:rng(8,28), espera:rng(4,14) }));
-  const barMax = Math.max(...hourly.map(d=>d.atend));
-
-  return (
-    <div style={{ minHeight:"100vh",padding:"80px 24px 48px" }}>
-      <div style={{ maxWidth:1100,margin:"0 auto" }}>
-        <div style={{ display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:36 }}>
-          <div>
-            <div style={{ color:"var(--muted)",fontSize:12,fontWeight:800,marginBottom:6,letterSpacing:2,textTransform:"uppercase" }}>Painel Administrativo</div>
-            <h1 style={{ fontFamily:"Urbanist",fontWeight:900,fontSize:34,letterSpacing:"-1.5px" }}>
-              Dashboard <span style={{ color:"var(--cyan)" }}>ZeroFila</span>
-            </h1>
-          </div>
-          <div className="glass" style={{ borderRadius:10,padding:"9px 16px",fontSize:12,color:"var(--muted)",display:"flex",alignItems:"center",gap:7,border:"1px solid rgba(29,111,255,0.2)" }}>
-            <div style={{ width:6,height:6,borderRadius:"50%",background:"var(--green)",animation:"blink 1.5s infinite" }}/>
-            Sistema operacional
-          </div>
+const Admin=()=>{
+  const{queue,stats,history}=useApp();
+  const h=Array.from({length:12},(_,i)=>({l:`${8+i}h`,a:rng(8,28),e:rng(4,14)}));
+  const mx=Math.max(...h.map(d=>d.a));
+  return(
+    <div style={{minHeight:"100vh",padding:"88px 24px 52px"}}>
+      <div style={{maxWidth:1100,margin:"0 auto"}}>
+        <div style={{marginBottom:34}}>
+          <div style={{color:"var(--cyan)",fontSize:11,fontWeight:800,marginBottom:7,letterSpacing:3,textTransform:"uppercase"}}>Painel Administrativo</div>
+          <h1 style={{fontFamily:"Urbanist",fontWeight:900,fontSize:36,letterSpacing:"-1.5px"}}>Dashboard <span style={{background:"linear-gradient(90deg,#8B3DFF,#00D4FF)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}}>FilaZero</span></h1>
         </div>
-
-        {/* KPIs */}
-        <div style={{ display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(175px,1fr))",gap:16,marginBottom:26 }}>
-          {[
-            {label:"Fila atual",val:queue.length,delta:"+2",icon:"👥",color:"#1D6FFF"},
-            {label:"Atendidos hoje",val:stats.hoje,delta:"+8",icon:"✅",color:"#00E583"},
-            {label:"Tempo médio",val:`${stats.tempo_medio.toFixed(1)}min`,delta:"-0.5",icon:"⏱",color:"#00D4FF"},
-            {label:"Satisfação",val:`${stats.satisfacao}%`,delta:"+1%",icon:"⭐",color:"#FFB800"},
-            {label:"Total acumulado",val:stats.total.toLocaleString("pt-BR"),delta:"+1.2k",icon:"📈",color:"#A78BFA"},
-          ].map((kpi,i)=>(
-            <div key={i} className="glass" style={{ borderRadius:20,padding:"24px 20px",border:"1px solid rgba(255,255,255,0.06)",position:"relative",overflow:"hidden" }}>
-              <div style={{ position:"absolute",bottom:-10,right:-10,width:80,height:80,borderRadius:"50%",background:`${kpi.color}12`,filter:"blur(18px)" }}/>
-              <div style={{ fontSize:26,marginBottom:10 }}>{kpi.icon}</div>
-              <div style={{ fontFamily:"Urbanist",fontWeight:900,fontSize:30,color:kpi.color }}>{kpi.val}</div>
-              <div style={{ fontSize:12,color:"var(--muted)",marginTop:3,fontWeight:500 }}>{kpi.label}</div>
-              <div style={{ fontSize:11,marginTop:8,color:"var(--green)",fontWeight:700 }}>↑ {kpi.delta} hoje</div>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(175px,1fr))",gap:14,marginBottom:24}}>
+          {[{l:"Fila atual",v:queue.length,c:"#00D4FF"},{l:"Atendidos hoje",v:stats.hoje,c:"#00F5A0"},{l:"Tempo médio",v:`${stats.tempo.toFixed(1)}min`,c:"#8B3DFF"},{l:"Satisfação",v:`${stats.satisf}%`,c:"#FFB800"},{l:"Total",v:stats.total.toLocaleString("pt-BR"),c:"#D946EF"}].map((k,i)=>(
+            <div key={i} className="glass" style={{borderRadius:20,padding:"24px 20px",border:`1px solid ${k.c}18`,position:"relative",overflow:"hidden",boxShadow:`0 0 30px ${k.c}10`}}>
+              <div style={{position:"absolute",bottom:-12,right:-12,width:80,height:80,borderRadius:"50%",background:`${k.c}12`,filter:"blur(20px)"}}/>
+              <div style={{fontFamily:"Urbanist",fontWeight:900,fontSize:32,color:k.c,textShadow:`0 0 25px ${k.c}50`}}>{k.v}</div>
+              <div style={{fontSize:12,color:"rgba(255,255,255,.4)",marginTop:4,fontWeight:600}}>{k.l}</div>
             </div>
           ))}
         </div>
-
-        {/* Charts */}
-        <div style={{ display:"grid",gridTemplateColumns:"2fr 1fr",gap:18,marginBottom:20 }}>
-          {/* Bar chart */}
-          <div className="glass" style={{ borderRadius:22,padding:"28px",border:"1px solid rgba(29,111,255,0.12)" }}>
-            <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:24 }}>
-              <div>
-                <div style={{ fontWeight:800,fontSize:16,fontFamily:"Urbanist" }}>Atendimentos por hora</div>
-                <div style={{ color:"var(--muted)",fontSize:12,marginTop:3,fontWeight:500 }}>Hoje · Tempo real</div>
-              </div>
-              <div style={{ display:"flex",gap:14,fontSize:12 }}>
-                {[{label:"Atendimentos",color:"#1D6FFF"},{label:"Espera avg",color:"#00D4FF"}].map(l=>(
-                  <div key={l.label} style={{ display:"flex",gap:6,alignItems:"center",color:"var(--muted)",fontWeight:600 }}>
-                    <div style={{ width:10,height:10,borderRadius:2,background:l.color }}/>
-                    {l.label}
+        <div style={{display:"grid",gridTemplateColumns:"2fr 1fr",gap:16,marginBottom:20}}>
+          <div className="glass" style={{borderRadius:22,padding:"28px",border:"1px solid rgba(255,255,255,.07)"}}>
+            <div style={{fontWeight:800,fontSize:15,fontFamily:"Urbanist",marginBottom:22}}>Atendimentos por hora</div>
+            <div style={{display:"flex",gap:5,alignItems:"flex-end",height:150}}>
+              {h.map((d,i)=>(
+                <div key={i} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:4,height:"100%"}}>
+                  <div style={{flex:1,display:"flex",gap:2,alignItems:"flex-end",width:"100%"}}>
+                    <div style={{flex:1,borderRadius:"4px 4px 0 0",background:"linear-gradient(180deg,#8B3DFF,rgba(139,61,255,.2))",height:`${(d.a/mx)*100}%`,minHeight:4,boxShadow:"0 0 8px rgba(139,61,255,.3)"}}/>
+                    <div style={{flex:1,borderRadius:"4px 4px 0 0",background:"linear-gradient(180deg,#00D4FF,rgba(0,212,255,.15))",height:`${(d.e/mx)*55}%`,minHeight:3,boxShadow:"0 0 8px rgba(0,212,255,.3)"}}/>
                   </div>
-                ))}
-              </div>
-            </div>
-            <div style={{ display:"flex",gap:6,alignItems:"flex-end",height:160 }}>
-              {hourly.map((d,i)=>(
-                <div key={i} style={{ flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:4,height:"100%" }}>
-                  <div style={{ flex:1,display:"flex",gap:3,alignItems:"flex-end",width:"100%" }}>
-                    <div style={{ flex:1,borderRadius:"4px 4px 0 0",background:"linear-gradient(180deg,#1D6FFF,rgba(29,111,255,0.3))",height:`${(d.atend/barMax)*100}%`,minHeight:4,transition:"height 1s ease" }}/>
-                    <div style={{ flex:1,borderRadius:"4px 4px 0 0",background:"linear-gradient(180deg,#00D4FF,rgba(0,212,255,0.25))",height:`${(d.espera/barMax)*60}%`,minHeight:4 }}/>
-                  </div>
-                  <div style={{ fontSize:10,color:"var(--muted)",fontWeight:600 }}>{d.hora}</div>
+                  <div style={{fontSize:9,color:"rgba(255,255,255,.3)",fontWeight:700}}>{d.l}</div>
                 </div>
               ))}
             </div>
           </div>
-
-          {/* Status */}
-          <div className="glass" style={{ borderRadius:22,padding:"28px",border:"1px solid rgba(29,111,255,0.12)" }}>
-            <div style={{ fontWeight:800,fontSize:16,marginBottom:6,fontFamily:"Urbanist" }}>Status atual</div>
-            <div style={{ color:"var(--muted)",fontSize:12,marginBottom:22,fontWeight:500 }}>Distribuição em tempo real</div>
-            <div style={{ display:"flex",flexDirection:"column",gap:14 }}>
-              {[
-                {label:"Aguardando",count:queue.filter(x=>x.status==="aguardando").length,color:"#5A6A8A"},
-                {label:"Em atendimento",count:queue.filter(x=>x.status==="em_atendimento").length,color:"#1D6FFF"},
-                {label:"Próximos",count:queue.filter(x=>x.status==="proximo").length,color:"#00D4FF"},
-              ].map(s=>(
-                <div key={s.label}>
-                  <div style={{ display:"flex",justifyContent:"space-between",fontSize:13,marginBottom:6,fontWeight:600 }}>
-                    <span style={{ color:"rgba(255,255,255,0.8)" }}>{s.label}</span>
-                    <span style={{ color:s.color }}>{s.count}</span>
-                  </div>
-                  <div style={{ height:6,background:"rgba(255,255,255,0.06)",borderRadius:100 }}>
-                    <div style={{ height:"100%",borderRadius:100,background:s.color,width:`${Math.max(8,(s.count/Math.max(queue.length,1))*100)}%`,transition:"width 1s ease",boxShadow:`0 0 10px ${s.color}80` }}/>
-                  </div>
+          <div className="glass" style={{borderRadius:22,padding:"28px",border:"1px solid rgba(255,255,255,.07)"}}>
+            <div style={{fontWeight:800,fontSize:15,fontFamily:"Urbanist",marginBottom:22}}>Status em tempo real</div>
+            {[{l:"Aguardando",v:queue.filter(x=>x.status==="aguardando").length,c:"#4A5570"},{l:"Em atendimento",v:queue.filter(x=>x.status==="em_atendimento").length,c:"#00D4FF"},{l:"Próximos",v:queue.filter(x=>x.status==="proximo").length,c:"#8B3DFF"}].map(s=>(
+              <div key={s.l} style={{marginBottom:16}}>
+                <div style={{display:"flex",justifyContent:"space-between",fontSize:13,marginBottom:7,fontWeight:600}}><span style={{color:"rgba(255,255,255,.65)"}}>{s.l}</span><span style={{color:s.c,textShadow:`0 0 10px ${s.c}60`}}>{s.v}</span></div>
+                <div style={{height:6,background:"rgba(255,255,255,.05)",borderRadius:100}}>
+                  <div style={{height:"100%",borderRadius:100,background:s.c,width:`${Math.max(8,(s.v/Math.max(queue.length,1))*100)}%`,transition:"width 1s ease",boxShadow:`0 0 10px ${s.c}80`}}/>
                 </div>
-              ))}
-            </div>
-            <div style={{ marginTop:24,paddingTop:20,borderTop:"1px solid rgba(255,255,255,0.07)" }}>
-              <div style={{ fontSize:12,color:"var(--muted)",marginBottom:6,fontWeight:600 }}>Horário de pico</div>
-              <div style={{ fontFamily:"Urbanist",fontWeight:900,fontSize:22 }}>14h – 16h</div>
-              <div style={{ fontSize:12,color:"var(--muted)",marginTop:3 }}>Média de 22 senhas/hora</div>
-            </div>
+              </div>
+            ))}
           </div>
         </div>
-
-        {/* Table */}
-        <div className="glass" style={{ borderRadius:22,padding:"28px",border:"1px solid rgba(29,111,255,0.12)" }}>
-          <div style={{ fontWeight:800,fontSize:16,marginBottom:20,display:"flex",alignItems:"center",gap:8,fontFamily:"Urbanist" }}>
+        <div className="glass" style={{borderRadius:22,padding:"28px",border:"1px solid rgba(255,255,255,.07)"}}>
+          <div style={{fontWeight:800,fontSize:15,fontFamily:"Urbanist",marginBottom:20,display:"flex",alignItems:"center",gap:9}}>
             Últimos atendimentos
-            <div style={{ fontSize:12,fontWeight:500,color:"var(--muted)",marginLeft:4 }}>atualizado em tempo real</div>
-            <div style={{ width:6,height:6,borderRadius:"50%",background:"var(--green)",animation:"blink 1.5s infinite",marginLeft:4 }}/>
+            <div style={{width:7,height:7,borderRadius:"50%",background:"var(--green)",animation:"blink 1.5s infinite",boxShadow:"0 0 8px var(--green)"}}/>
           </div>
           <div>
-            <div style={{ display:"grid",gridTemplateColumns:"80px 1fr 160px 110px 90px",gap:12,padding:"0 0 12px",borderBottom:"1px solid rgba(255,255,255,0.07)",fontSize:11,color:"var(--muted)",fontWeight:800,letterSpacing:1.2,textTransform:"uppercase" }}>
-              <span>Senha</span><span>Paciente</span><span>Tipo</span><span>Guichê</span><span>Status</span>
+            <div style={{display:"grid",gridTemplateColumns:"80px 1fr 150px 110px 90px",gap:12,padding:"0 0 12px",borderBottom:"1px solid rgba(255,255,255,.06)",fontSize:10,color:"rgba(255,255,255,.3)",fontWeight:800,letterSpacing:1.5,textTransform:"uppercase"}}>
+              <span>Senha</span><span>Nome</span><span>Tipo</span><span>Guichê</span><span>Status</span>
             </div>
-            {[...history.slice(0,8),...queue.slice(0,5)].slice(0,10).map((p,i)=>(
-              <div key={p.id+i} style={{ display:"grid",gridTemplateColumns:"80px 1fr 160px 110px 90px",gap:12,padding:"13px 0",borderBottom:"1px solid rgba(255,255,255,0.04)",fontSize:13,animation:i===0?"fadeIn 0.5s ease":"none" }}>
-                <span style={{ fontFamily:"Urbanist",fontWeight:800,color:"var(--cyan)" }}>{p.ticket}</span>
-                <span style={{ fontWeight:500 }}>{p.nome}</span>
-                <span style={{ color:"var(--muted)",fontSize:12 }}>{p.tipo}</span>
-                <span style={{ color:"var(--muted)",fontSize:12 }}>{p.guiche||"—"}</span>
+            {[...history.slice(0,5),...queue.slice(0,5)].slice(0,9).map((p,i)=>(
+              <div key={p.id+i} style={{display:"grid",gridTemplateColumns:"80px 1fr 150px 110px 90px",gap:12,padding:"13px 0",borderBottom:"1px solid rgba(255,255,255,.04)",fontSize:13}}>
+                <span style={{fontFamily:"Urbanist",fontWeight:800,background:"linear-gradient(90deg,#8B3DFF,#00D4FF)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}}>{p.ticket}</span>
+                <span style={{fontWeight:500}}>{p.nome}</span>
+                <span style={{color:"rgba(255,255,255,.4)",fontSize:12}}>{p.tipo}</span>
+                <span style={{color:"rgba(255,255,255,.4)",fontSize:12}}>{p.guiche||"—"}</span>
                 <Badge status={p.status||"concluido"} small/>
               </div>
             ))}
@@ -981,81 +831,24 @@ const Admin = () => {
   );
 };
 
-// ─── LOGIN ────────────────────────────────────────────────────────────────────
-const Login = ({ setPage }) => {
-  const [form, setForm] = useState({ email:"", senha:"" });
-  const [loading, setLoading] = useState(false);
-  const [ok, setOk] = useState(false);
-
-  const go = () => {
-    setLoading(true);
-    setTimeout(()=>{ setLoading(false); setOk(true); setTimeout(()=>setPage("admin"),1200); },1600);
-  };
-
-  return (
-    <div style={{ minHeight:"100vh",display:"flex",alignItems:"center",justifyContent:"center",padding:"20px" }}>
-      <div style={{ width:"100%",maxWidth:440 }}>
-        <div className="glass-strong anim-up" style={{ borderRadius:28,padding:"50px 44px",border:"1px solid rgba(29,111,255,0.25)" }}>
-          {!ok ? (
-            <>
-              <div style={{ textAlign:"center",marginBottom:36 }}>
-                <div style={{ width:68,height:68,borderRadius:22,background:"linear-gradient(135deg,#1D6FFF,#00D4FF)",display:"flex",alignItems:"center",justifyContent:"center",margin:"0 auto 20px",fontFamily:"Urbanist",fontWeight:900,fontSize:30,boxShadow:"0 10px 36px rgba(29,111,255,0.45)" }}>Z</div>
-                <h2 style={{ fontFamily:"Urbanist",fontSize:28,fontWeight:900,letterSpacing:"-0.5px" }}>Entrar na plataforma</h2>
-                <p style={{ color:"var(--muted)",fontSize:14,marginTop:8,fontWeight:500 }}>Acesso restrito ao painel administrativo</p>
-              </div>
-              <div style={{ display:"flex",flexDirection:"column",gap:16 }}>
-                <div>
-                  <label style={{ fontSize:13,fontWeight:700,display:"block",marginBottom:8,color:"rgba(255,255,255,0.7)" }}>E-mail corporativo</label>
-                  <input type="email" placeholder="admin@zerofila.app" value={form.email} onChange={e=>setForm(f=>({...f,email:e.target.value}))}
-                    style={{ width:"100%",padding:"14px 16px",background:"rgba(255,255,255,0.045)",border:"1px solid rgba(29,111,255,0.2)",borderRadius:12,color:"white",fontSize:15 }}/>
-                </div>
-                <div>
-                  <label style={{ fontSize:13,fontWeight:700,display:"block",marginBottom:8,color:"rgba(255,255,255,0.7)" }}>Senha</label>
-                  <input type="password" placeholder="••••••••" value={form.senha} onChange={e=>setForm(f=>({...f,senha:e.target.value}))}
-                    style={{ width:"100%",padding:"14px 16px",background:"rgba(255,255,255,0.045)",border:"1px solid rgba(29,111,255,0.2)",borderRadius:12,color:"white",fontSize:15 }}/>
-                </div>
-                <button onClick={go} disabled={loading} className="btn-primary" style={{ width:"100%",padding:"16px",fontSize:16,borderRadius:14,marginTop:8 }}>
-                  {loading
-                    ? <span style={{ display:"flex",alignItems:"center",justifyContent:"center",gap:10 }}><div style={{ width:18,height:18,border:"2px solid rgba(255,255,255,0.3)",borderTopColor:"white",borderRadius:"50%",animation:"spin 0.8s linear infinite" }}/>Autenticando...</span>
-                    : "Acessar painel →"}
-                </button>
-                <div style={{ textAlign:"center",fontSize:12,color:"var(--muted)",marginTop:2,fontWeight:500 }}>Use qualquer e-mail e senha para demonstração</div>
-              </div>
-            </>
-          ) : (
-            <div style={{ textAlign:"center",animation:"fadeIn 0.5s ease" }}>
-              <div style={{ fontSize:58,marginBottom:16 }}>✅</div>
-              <h2 style={{ fontFamily:"Urbanist",fontSize:24,fontWeight:900 }}>Acesso concedido!</h2>
-              <p style={{ color:"var(--muted)",marginTop:8 }}>Redirecionando para o painel...</p>
-              <div style={{ marginTop:24,height:3,background:"rgba(255,255,255,0.07)",borderRadius:100,overflow:"hidden" }}>
-                <div style={{ height:"100%",background:"linear-gradient(90deg,#1D6FFF,#00D4FF)",borderRadius:100,animation:"ticker 1.2s ease forwards",width:"100%" }}/>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-};
-
 // ─── ROOT ──────────────────────────────────────────────────────────────────────
-export default function App() {
-  const [page, setPage] = useState("home");
-  return (
-    <QueueProvider>
-      <GlobalStyles/>
-      <div style={{ position:"relative",minHeight:"100vh",background:"var(--navy)" }}>
-        <Particles/>
-        <div style={{ position:"relative",zIndex:1 }}>
+export default function App(){
+  const[page,setPage]=useState("home");
+  return(
+    <Provider>
+      <G/>
+      <div style={{position:"relative",minHeight:"100vh",background:"var(--bg)"}}>
+        <CinematicBG/>
+        <div style={{position:"relative",zIndex:1}}>
           <Navbar page={page} setPage={setPage}/>
           <Toasts/>
-          {page==="home"  && <Landing setPage={setPage}/>}
-          {page==="fila"  && <FilaPage setPage={setPage}/>}
-          {page==="painel"&& <Painel/>}
-          {page==="admin" && <Admin/>}
-          {page==="login" && <Login setPage={setPage}/>}
+          {page==="home"  &&<Home setPage={setPage}/>}
+          {page==="scan"  &&<QRScan setPage={setPage}/>}
+          {page==="fila"  &&<Fila setPage={setPage}/>}
+          {page==="painel"&&<Painel/>}
+          {page==="admin" &&<Admin/>}
         </div>
       </div>
-    </QueueProvider>
+    </Provider>
   );
 }
